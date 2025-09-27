@@ -3505,6 +3505,7 @@ GameObject:
   - component: {fileID: 963194227}
   - component: {fileID: 963194226}
   - component: {fileID: 963194229}
+  - component: {fileID: 963194230}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -3600,6 +3601,25 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   MouseSensity: 500
   PlayerTransform: {fileID: 2026736427}
+--- !u!114 &963194230
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 963194225}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0b373e04804f04c40b61d1ed6118b31e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _playerController: {fileID: 2026736426}
+  WalkHeadBobSpeed: 7
+  WalkHeadBobIntensity: 0.1
+  RunHeadBobSpeed: 15
+  RunHeadBobIntensity: 0.2
+  StopSpeed: 10
+  IsHeadBob: 1
 --- !u!43 &1001145818
 Mesh:
   m_ObjectHideFlags: 0
@@ -11713,7 +11733,7 @@ Transform:
   m_GameObject: {fileID: 2026736424}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 1, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -11732,6 +11752,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 02916a273bd2ce245a99824bb24de204, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  gravity: -9
   MoveSpeed: 5
   RunSpeed: 8
 --- !u!1 &2109070972
