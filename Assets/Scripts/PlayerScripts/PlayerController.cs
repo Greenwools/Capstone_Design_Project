@@ -9,6 +9,13 @@ public class PlayerController : MonoBehaviour
     private Vector3 _playerVelocity;
     private AudioSource _audioSource;
 
+    public AudioClip ConcreteSoundLoop;
+    public AudioClip WaterShallowSoundLoop;
+    public AudioClip WaterDeepSoundLoop;
+
+    public bool IsInWater = false;
+    public float CurrentWaterLevel = 0;
+
     public float WalkPitch = 1.2f;
     public float RunPitch = 1.92f;
 
@@ -21,6 +28,7 @@ public class PlayerController : MonoBehaviour
     {
         _playerController = GetComponent<CharacterController>();
         _audioSource = GetComponent<AudioSource>();
+        _audioSource.loop = true;
     }
 
     // Update is called once per frame
@@ -64,7 +72,27 @@ public class PlayerController : MonoBehaviour
     {
         if (_playerController.isGrounded && _playerController.velocity.magnitude > 2f)
         {
-            if (!_audioSource.isPlaying) _audioSource.Play();
+            AudioClip clipToPlay = null;
+
+            if (IsInWater)
+            {
+                if (CurrentWaterLevel < 0.5f) clipToPlay = WaterShallowSoundLoop;
+                else clipToPlay = WaterDeepSoundLoop;
+            }
+
+            else clipToPlay = ConcreteSoundLoop;
+
+            if (clipToPlay != null) 
+            { 
+                if (_audioSource.clip != clipToPlay)
+                {
+                    _audioSource.Stop();
+                    _audioSource.clip = clipToPlay;
+                    _audioSource.Play();
+                }
+
+                else if (!_audioSource.isPlaying) _audioSource.Play();
+            }
 
             bool isRun = Input.GetKey(KeyCode.LeftShift);
             _audioSource.pitch = isRun ? RunPitch : WalkPitch;

@@ -85,7 +85,7 @@ public class PlayerViewInteraction : MonoBehaviour
                 }
 
                 DoorInteraction door = hit.collider.GetComponent<DoorInteraction>();
-                if (door != null) 
+                if (door != null && door.enabled) 
                 { 
                     door.ToggleDoor();
                     return;
