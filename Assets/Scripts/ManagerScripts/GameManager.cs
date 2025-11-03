@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 using System.Linq;
+using UnityEditor;
 
 public class GameManager : MonoBehaviour
 {
@@ -12,6 +13,7 @@ public class GameManager : MonoBehaviour
     public static int CurrentChapter = 1;
     public static bool IsPlayerStop = false;                // 플레이어 행동 제어
     public static bool IsAnomaly = false;
+    public static bool HasBackpack = false;
 
     [SerializeField] private GameObject _menuUI;
     [SerializeField] private GameObject _inventoryUI;
@@ -48,7 +50,11 @@ public class GameManager : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Escape))
         {
-            if (_isInventoryOpen) ToggleInventory();
+            if (_isInventoryOpen)
+            {
+
+                ToggleInventory();
+            }
 
             else
             {
@@ -58,7 +64,7 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        if (!_isPause && (Input.GetKeyDown(KeyCode.Tab) || Input.GetKeyDown(KeyCode.I))) 
+        if (HasBackpack && !_isPause && (Input.GetKeyDown(KeyCode.Tab) || Input.GetKeyDown(KeyCode.I))) 
         {
             ToggleInventory();
         }
@@ -127,6 +133,16 @@ public class GameManager : MonoBehaviour
     {
         LoopCount++;
         Debug.Log("누적 루프 횟수 : " + LoopCount);
+    }
+
+    public void CheckAnomaly()
+    {
+        if (LoopCount < 2) IsAnomaly = false;
+
+        else
+        {
+            IsAnomaly = (Random.value > 0.5f);
+        }
     }
 
     public void NextChapeter()

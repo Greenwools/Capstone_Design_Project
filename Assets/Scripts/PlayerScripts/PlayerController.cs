@@ -42,7 +42,8 @@ public class PlayerController : MonoBehaviour
 
         float currentSpeed = MoveSpeed;
 
-        if (Input.GetKey(KeyCode.LeftShift)) currentSpeed = RunSpeed;
+        if (GameManager.LoopCount >= 1 && Input.GetKey(KeyCode.LeftShift)) 
+            currentSpeed = RunSpeed;
 
         float horizontalMove = Input.GetAxis("Horizontal");
         float verticalMove = Input.GetAxis("Vertical");

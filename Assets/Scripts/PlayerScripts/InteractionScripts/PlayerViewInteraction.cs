@@ -22,6 +22,10 @@ public class PlayerViewInteraction : MonoBehaviour
     public Image FadeImage;
     public float FadeDuration = 1f;
 
+    public GameObject StairBlockWall;
+    public GameObject TutorialNote;
+    public GameObject OnDeskObject;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -29,11 +33,16 @@ public class PlayerViewInteraction : MonoBehaviour
         _flashLight = GetComponent<Light>();
         _audioSource = GetComponent<AudioSource>();
 
-        if (_audioSource != null )
+        if (_audioSource == null )
         {
             _audioSource = gameObject.AddComponent<AudioSource>();
             _audioSource.playOnAwake = false;
         }
+
+        GameManager.LoopCount = 0;
+        GameManager.IsAnomaly = false;
+        if (StairBlockWall != null ) StairBlockWall.SetActive(true);
+        if (TutorialNote != null ) TutorialNote.SetActive(false);
     }
 
     // Update is called once per frame
@@ -41,7 +50,7 @@ public class PlayerViewInteraction : MonoBehaviour
     {
         if (GameManager.IsPlayerStop) return;
 
-        if (Input.GetMouseButtonDown(1))
+        if (GameManager.LoopCount >= 2 && Input.GetMouseButtonDown(1))
         {
             if (_flashLight != null)
             {
@@ -62,6 +71,12 @@ public class PlayerViewInteraction : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.F)) 
             { 
+                if (hit.collider.tag == "Backpack")
+                {
+                    if (!GameManager.HasBackpack) StartCoroutine(BackpackPickupEvent(hit.collider.gameObject));
+                    return;
+                }
+
                 ItemPickup itemPickup = hit.collider.GetComponent<ItemPickup>();
                 if (itemPickup != null)
                 {
@@ -73,6 +88,13 @@ public class PlayerViewInteraction : MonoBehaviour
                 if (door != null) 
                 { 
                     door.ToggleDoor();
+                    return;
+                }
+
+                CabinetInteraction cabinet = hit.collider.GetComponent<CabinetInteraction>();
+                if (cabinet != null)
+                {
+                    cabinet.ToggleCabinet();
                     return;
                 }
 
@@ -162,8 +184,15 @@ public class PlayerViewInteraction : MonoBehaviour
         PlayerTransform.position = SpawnTransform.position;
         cc.enabled = true;
 
-        GameManager.Instance.CompleteLoop();
         GameManager.Instance.ResetAllObjects();
+        GameManager.Instance.CompleteLoop();
+        GameManager.Instance.CheckAnomaly();
+
+        if (GameManager.LoopCount == 2)
+        {
+            if (TutorialNote != null) TutorialNote.SetActive(true);
+            if (StairBlockWall != null) StairBlockWall.SetActive(false);
+        }
 
         timer = 0f;
         while (timer < FadeDuration) {
@@ -190,10 +219,48 @@ public class PlayerViewInteraction : MonoBehaviour
         PlayerTransform.position = SpawnTransform.position;
         cc.enabled = true;
 
-        GameManager.Instance.CompleteLoop();
         GameManager.Instance.ResetAllObjects();
+        GameManager.Instance.CompleteLoop();
+        GameManager.Instance.CheckAnomaly();
+
+        if (GameManager.LoopCount == 2)
+        {
+            if (TutorialNote != null) TutorialNote.SetActive(true);
+            if (StairBlockWall != null) StairBlockWall.SetActive(false);
+        }
 
         float timer = 0f;
+        while (timer < FadeDuration)
+        {
+            FadeImage.color = new Color(0, 0, 0, 1 - (timer / FadeDuration));
+            timer += Time.deltaTime;
+            yield return null;
+        }
+        FadeImage.color = new Color(0, 0, 0, 0);
+
+        GameManager.IsPlayerStop = false;
+    }
+
+    private IEnumerator BackpackPickupEvent(GameObject backpack)
+    {
+        GameManager.IsPlayerStop = true;
+
+        float timer = 0f;
+        while (timer < FadeDuration)
+        {
+            FadeImage.color = new Color(0, 0, 0, timer / FadeDuration);
+            timer += Time.deltaTime;
+            yield return null;
+        }
+        FadeImage.color = new Color(0, 0, 0, 1);
+
+        GameManager.HasBackpack = true;
+        Destroy(backpack);
+
+        if (OnDeskObject != null) OnDeskObject.SetActive(false);
+
+        yield return new WaitForSeconds(0.5f);
+
         while (timer < FadeDuration)
         {
             FadeImage.color = new Color(0, 0, 0, 1 - (timer / FadeDuration));
