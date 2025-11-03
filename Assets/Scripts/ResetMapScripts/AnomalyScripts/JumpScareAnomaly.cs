@@ -4,7 +4,8 @@ using UnityEngine;
 
 public class JumpScareAnomaly : MonoBehaviour, IAnomaly, IResetable
 {
-    private AudioSource _audioSource;
+    private Vector3 _doppleInitialPos;
+    private Quaternion _doppleInitialRot;
     private bool _hasTriggered = false;
 
     public GameObject FlickeringLightObject;
@@ -12,16 +13,22 @@ public class JumpScareAnomaly : MonoBehaviour, IAnomaly, IResetable
     public DoorInteraction[] DoorsLock;
     public Transform PlayerTransform;
 
+    public AudioSource JumpScareAudio;
+    public AudioSource HeartBeatAudio;
     public AudioClip JumpScareSound;
     public AudioClip HeartBeatSound;
 
     void Awake()
     {
         GetComponent<Collider>().isTrigger = true;
-        _audioSource = GetComponent<AudioSource>();
-        _audioSource.playOnAwake = false;
 
         if (PlayerTransform == null) PlayerTransform = GameObject.FindWithTag("Player").transform;
+
+        if (DoppleModel != null)
+        {
+            _doppleInitialPos = DoppleModel.transform.position;
+            _doppleInitialRot = DoppleModel.transform.rotation;
+        }
     }
 
     public void TriggerAnomaly()
@@ -42,14 +49,21 @@ public class JumpScareAnomaly : MonoBehaviour, IAnomaly, IResetable
     public void ResetState()
     {
         if (FlickeringLightObject != null) FlickeringLightObject.SetActive(false);
-        if (DoppleModel != null) DoppleModel.SetActive(false);
+        if (DoppleModel != null)
+        {
+            DoppleModel.transform.position = _doppleInitialPos;
+            DoppleModel.transform.rotation = _doppleInitialRot;
+            DoppleModel.SetActive(false);
+        }
 
         foreach (DoorInteraction door in DoorsLock)
         {
             if (door != null) door.enabled = true;
         }
 
-        _audioSource.Stop();
+        if (JumpScareAudio != null) JumpScareAudio.Stop();
+        if (HeartBeatAudio != null) HeartBeatAudio.Stop();
+
         StopAllCoroutines();
         _hasTriggered = false;
         gameObject.SetActive(false);
@@ -72,20 +86,23 @@ public class JumpScareAnomaly : MonoBehaviour, IAnomaly, IResetable
 
         if (DoppleModel != null && PlayerTransform != null)
         {
+            DoppleModel.transform.LookAt(PlayerTransform);
             Vector3 targetPos = PlayerTransform.position + PlayerTransform.forward * 1.0f;
-            targetPos.y = PlayerTransform.position.y;
+            targetPos.y = PlayerTransform.position.y - 0.75f;
             DoppleModel.transform.position = targetPos;
 
-            DoppleModel.transform.LookAt(PlayerTransform);
+            
         }
 
-        _audioSource.Stop();
-        _audioSource.PlayOneShot(JumpScareSound);
-        _audioSource.PlayOneShot(HeartBeatSound);
+        if (JumpScareAudio != null) JumpScareAudio.PlayOneShot(JumpScareSound);
 
         DecreaseSansity();
 
-        yield return new WaitForSeconds(1.5f);
+        yield return new WaitForSeconds(0.5f);
+
+        if (HeartBeatAudio != null) HeartBeatAudio.PlayOneShot(HeartBeatSound);
+
+        yield return new WaitForSeconds(1.0f);
 
         GameManager.IsPlayerStop = false;
 
