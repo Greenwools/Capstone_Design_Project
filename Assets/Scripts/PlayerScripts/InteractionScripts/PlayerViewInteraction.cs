@@ -182,16 +182,18 @@ public class PlayerViewInteraction : MonoBehaviour
         CharacterController cc = PlayerTransform.GetComponent<CharacterController>();
         cc.enabled = false;
         PlayerTransform.position = SpawnTransform.position;
+        PlayerTransform.rotation = SpawnTransform.rotation;
         cc.enabled = true;
 
-        GameManager.Instance.ResetAllObjects();
-        GameManager.Instance.CompleteLoop();
-        GameManager.Instance.CheckAnomaly();
+        GameManager.Instance.DecideNextLoopState();
 
         if (GameManager.LoopCount == 2)
         {
             if (TutorialNote != null) TutorialNote.SetActive(true);
             if (StairBlockWall != null) StairBlockWall.SetActive(false);
+
+            GameObject[] mainLights = GameObject.FindGameObjectsWithTag("MainLight");
+            foreach (GameObject light in mainLights) light.SetActive(false);
         }
 
         timer = 0f;
@@ -217,16 +219,18 @@ public class PlayerViewInteraction : MonoBehaviour
         CharacterController cc = PlayerTransform.GetComponent<CharacterController>();
         cc.enabled = false;
         PlayerTransform.position = SpawnTransform.position;
+        PlayerTransform.rotation = SpawnTransform.rotation;
         cc.enabled = true;
 
-        GameManager.Instance.ResetAllObjects();
-        GameManager.Instance.CompleteLoop();
-        GameManager.Instance.CheckAnomaly();
+        GameManager.Instance.DecideNextLoopState();
 
         if (GameManager.LoopCount == 2)
         {
             if (TutorialNote != null) TutorialNote.SetActive(true);
             if (StairBlockWall != null) StairBlockWall.SetActive(false);
+
+            GameObject[] mainLights = GameObject.FindGameObjectsWithTag("MainLight");
+            foreach (GameObject light in mainLights) light.SetActive(false);
         }
 
         float timer = 0f;
@@ -254,6 +258,9 @@ public class PlayerViewInteraction : MonoBehaviour
         }
         FadeImage.color = new Color(0, 0, 0, 1);
 
+        _audioSource.pitch = 0.8f;
+        _audioSource.PlayOneShot(AudioClips[4]);
+
         GameManager.HasBackpack = true;
         Destroy(backpack);
 
@@ -261,6 +268,7 @@ public class PlayerViewInteraction : MonoBehaviour
 
         yield return new WaitForSeconds(0.5f);
 
+        timer = 0f;
         while (timer < FadeDuration)
         {
             FadeImage.color = new Color(0, 0, 0, 1 - (timer / FadeDuration));
