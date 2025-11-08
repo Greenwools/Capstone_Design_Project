@@ -8,6 +8,7 @@ public class PlayerController : MonoBehaviour
 
     private Vector3 _playerVelocity;
     private AudioSource _audioSource;
+    private bool _isRun = false;
 
     public AudioClip ConcreteSoundLoop;
     public AudioClip WaterShallowSoundLoop;
@@ -16,8 +17,8 @@ public class PlayerController : MonoBehaviour
     public bool IsInWater = false;
     public float CurrentWaterLevel = 0;
 
-    public float WalkPitch = 1.2f;
-    public float RunPitch = 1.92f;
+    public float WalkPitch = 0.95f;
+    public float RunPitch = 1.6f;
 
     public float gravity = -10f;
     public float MoveSpeed = 5.0f;
@@ -50,8 +51,13 @@ public class PlayerController : MonoBehaviour
 
         float currentSpeed = MoveSpeed;
 
-        if (GameManager.LoopCount >= 1 && Input.GetKey(KeyCode.LeftShift)) 
+        _isRun = false;
+
+        if (GameManager.LoopCount >= 1 && GameManager.CanSprint && Input.GetKey(KeyCode.LeftShift))
+        {
             currentSpeed = RunSpeed;
+            _isRun = true;
+        }
 
         float horizontalMove = Input.GetAxis("Horizontal");
         float verticalMove = Input.GetAxis("Vertical");
@@ -94,8 +100,7 @@ public class PlayerController : MonoBehaviour
                 else if (!_audioSource.isPlaying) _audioSource.Play();
             }
 
-            bool isRun = Input.GetKey(KeyCode.LeftShift);
-            _audioSource.pitch = isRun ? RunPitch : WalkPitch;
+            _audioSource.pitch = _isRun ? RunPitch : WalkPitch;
         }
 
         else _audioSource.Stop();

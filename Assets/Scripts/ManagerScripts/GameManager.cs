@@ -12,6 +12,7 @@ public class GameManager : MonoBehaviour
     public static int LoopCount = 0;
     public static int CurrentChapter = 1;
     public static bool IsPlayerStop = false;                // 플레이어 행동 제어
+    public static bool CanSprint = true;
     public static bool IsAnomaly = false;
     public static bool HasBackpack = false;
 
@@ -47,7 +48,7 @@ public class GameManager : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
+    void LateUpdate()
     {
         if (Input.GetKeyDown(KeyCode.Escape))
         {
