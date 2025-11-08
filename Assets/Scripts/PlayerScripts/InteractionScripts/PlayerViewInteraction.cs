@@ -170,14 +170,7 @@ public class PlayerViewInteraction : MonoBehaviour
     {
         GameManager.IsPlayerStop = true;        // 이동하는 동안 플레이어 정지
 
-        float timer = 0f;
-
-        while (timer < FadeDuration) {
-            FadeImage.color = new Color(0, 0, 0, timer / FadeDuration);
-            timer += Time.deltaTime;
-            yield return null;
-        }
-        FadeImage.color = new Color(0, 0, 0, 1);
+        yield return StartCoroutine(EventManager.Instance.Fade(false, FadeDuration));
 
         CharacterController cc = PlayerTransform.GetComponent<CharacterController>();
         cc.enabled = false;
@@ -196,13 +189,7 @@ public class PlayerViewInteraction : MonoBehaviour
             foreach (GameObject light in mainLights) light.SetActive(false);
         }
 
-        timer = 0f;
-        while (timer < FadeDuration) {
-            FadeImage.color = new Color(0, 0, 0, 1 - (timer / FadeDuration));
-            timer += Time.deltaTime;
-            yield return null;
-        }
-        FadeImage.color = new Color(0, 0, 0, 0);
+        yield return StartCoroutine(EventManager.Instance.Fade(true, FadeDuration));
 
         GameManager.IsPlayerStop = false;
     }
@@ -211,10 +198,7 @@ public class PlayerViewInteraction : MonoBehaviour
     {
         GameManager.IsPlayerStop = true;
 
-        FadeImage.color = Color.red;
-        yield return new WaitForSeconds(0.1f);
-        FadeImage.color = Color.black;
-        yield return new WaitForSeconds(0.5f);
+        yield return StartCoroutine(EventManager.Instance.Fade(false, FadeDuration));
 
         CharacterController cc = PlayerTransform.GetComponent<CharacterController>();
         cc.enabled = false;
@@ -224,23 +208,7 @@ public class PlayerViewInteraction : MonoBehaviour
 
         GameManager.Instance.DecideNextLoopState();
 
-        if (GameManager.LoopCount == 2)
-        {
-            if (TutorialNote != null) TutorialNote.SetActive(true);
-            if (StairBlockWall != null) StairBlockWall.SetActive(false);
-
-            GameObject[] mainLights = GameObject.FindGameObjectsWithTag("MainLight");
-            foreach (GameObject light in mainLights) light.SetActive(false);
-        }
-
-        float timer = 0f;
-        while (timer < FadeDuration)
-        {
-            FadeImage.color = new Color(0, 0, 0, 1 - (timer / FadeDuration));
-            timer += Time.deltaTime;
-            yield return null;
-        }
-        FadeImage.color = new Color(0, 0, 0, 0);
+        yield return StartCoroutine(EventManager.Instance.Fade(true, FadeDuration));
 
         GameManager.IsPlayerStop = false;
     }
@@ -249,14 +217,7 @@ public class PlayerViewInteraction : MonoBehaviour
     {
         GameManager.IsPlayerStop = true;
 
-        float timer = 0f;
-        while (timer < FadeDuration)
-        {
-            FadeImage.color = new Color(0, 0, 0, timer / FadeDuration);
-            timer += Time.deltaTime;
-            yield return null;
-        }
-        FadeImage.color = new Color(0, 0, 0, 1);
+        yield return StartCoroutine(EventManager.Instance.Fade(false, 1f));
 
         _audioSource.pitch = 0.8f;
         _audioSource.PlayOneShot(AudioClips[4]);
@@ -268,14 +229,10 @@ public class PlayerViewInteraction : MonoBehaviour
 
         yield return new WaitForSeconds(0.5f);
 
-        timer = 0f;
-        while (timer < FadeDuration)
-        {
-            FadeImage.color = new Color(0, 0, 0, 1 - (timer / FadeDuration));
-            timer += Time.deltaTime;
-            yield return null;
-        }
-        FadeImage.color = new Color(0, 0, 0, 0);
+        EventManager.Instance.UpdateObjective("왼쪽 출입구로 나가기");
+        EventManager.Instance.ShowSubtitle("이제 건물 밖으로 나가자.", 3f);
+
+        yield return StartCoroutine(EventManager.Instance.Fade(true, 1f));
 
         GameManager.IsPlayerStop = false;
     }

@@ -13,18 +13,18 @@ public class HyperventilationAnomaly : MonoBehaviour, IAnomaly, IResetable
     private HeadBob _headBob;
     private bool _hasTriggered = false;
     private float _orginalWalkIntensity;
-    private float _orginalRunIntensity;
     private Coroutine _breathingCoroutine;
 
     public Volume PostProcessVolume;
     public float MaxLensDistortion = -0.5f;
     public float MaxChromaticAberration = 1.0f;
     public float MaxVignetteIntensity = 0.6f;
-    public float EffectDuration = 30f;
-    public float HeadBobMultiplier = 3.5f;
+    public float EffectDuration = 60f;
+    public float HeadBobMultiplier = 2.5f;
 
     public AudioSource BreathingAudio;
     public AudioSource HeartBeatAudio;
+    public AudioClip[] BreathingSounds;
 
     void Awake()
     {
@@ -54,6 +54,7 @@ public class HyperventilationAnomaly : MonoBehaviour, IAnomaly, IResetable
     {
         StopAllCoroutines();
 
+        if (_breathingCoroutine != null) StopCoroutine(_breathingCoroutine); 
         if (BreathingAudio != null) BreathingAudio.Stop();
         if (HeartBeatAudio != null) HeartBeatAudio.Stop();
 
@@ -61,12 +62,9 @@ public class HyperventilationAnomaly : MonoBehaviour, IAnomaly, IResetable
         if (_chromaticAberration != null) _chromaticAberration.intensity.value = 0f;
         if (_vignette != null) _vignette.intensity.value = 0f;
 
-        if (_headBob != null)
-        {
-            if (_orginalWalkIntensity > 0) _headBob.WalkHeadBobIntensity = _orginalWalkIntensity;
-            if (_orginalRunIntensity > 0) _headBob.RunHeadBobIntensity = _orginalRunIntensity;
-        }
+        if (_headBob != null) if (_orginalWalkIntensity > 0) _headBob.WalkHeadBobIntensity = _orginalWalkIntensity;
 
+        GameManager.CanSprint = true;
         _hasTriggered = false;
         gameObject.SetActive(false);
     }
@@ -88,11 +86,12 @@ public class HyperventilationAnomaly : MonoBehaviour, IAnomaly, IResetable
             yield break;
         }
 
-        _orginalWalkIntensity = _headBob.WalkHeadBobIntensity;
-        _orginalRunIntensity = _headBob.RunHeadBobIntensity;
+        GameManager.CanSprint = false;
 
-        if (BreathingAudio != null) BreathingAudio.Play();
+        _orginalWalkIntensity = _headBob.WalkHeadBobIntensity;
+
         if (HeartBeatAudio != null) HeartBeatAudio.Play();
+        _breathingCoroutine = StartCoroutine(PlayBreathingSounds());
 
         float timer = 0f;
         while (timer < EffectDuration) 
@@ -102,14 +101,26 @@ public class HyperventilationAnomaly : MonoBehaviour, IAnomaly, IResetable
 
             _lensDistortion.intensity.value = MaxLensDistortion * curve;
             _chromaticAberration.intensity.value = MaxChromaticAberration * curve;
+            _vignette.intensity.value = MaxVignetteIntensity * curve;
 
             _headBob.WalkHeadBobIntensity = _orginalWalkIntensity + (_orginalWalkIntensity * HeadBobMultiplier * curve);
-            _headBob.RunHeadBobIntensity = _orginalRunIntensity + (_orginalRunIntensity * HeadBobMultiplier * curve);
 
             timer += Time.deltaTime;
             yield return null;
         }
 
         ResetState();
+    }
+
+    private IEnumerator PlayBreathingSounds()
+    {
+        if (BreathingSounds.Length == 0 || BreathingAudio == null) yield break;
+
+        while (true)
+        {
+            AudioClip clip = BreathingSounds[Random.Range(0, BreathingSounds.Length)];
+            BreathingAudio.PlayOneShot(clip);
+            yield return new WaitForSeconds(clip.length);
+        }
     }
 }
