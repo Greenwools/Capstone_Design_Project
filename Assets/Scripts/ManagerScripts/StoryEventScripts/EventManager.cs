@@ -54,11 +54,25 @@ public class EventManager : MonoBehaviour
     // 목표 업데이트
     public void UpdateObjective(string text)
     {
-        if (ObjectiveText != null) ObjectiveText.text = "목표 : " + text;
+        if (ObjectiveText == null) return;
+
+        if (string.IsNullOrEmpty(text))
+        {
+            ObjectiveText.text = "";
+            ObjectiveText.gameObject.SetActive(false);
+        }
+
+        else
+        {
+            ObjectiveText.text = "목표 : " + text;
+            ObjectiveText.gameObject.SetActive(true);
+        }
     }
 
     public IEnumerator Fade(bool fadeIn, float duration)
     {
+        if (ObjectiveText != null && ObjectiveText.text != "") ObjectiveText.gameObject.SetActive(false);
+
         if (fadeIn) { }
         else
         {
@@ -80,6 +94,8 @@ public class EventManager : MonoBehaviour
         {
             FadeImage.color = new Color(0, 0, 0, 0);
             FadePanel.SetActive(false);
+
+            if (ObjectiveText != null && ObjectiveText.text != "") ObjectiveText.gameObject.SetActive(true);
         }
 
         else FadeImage.color = new Color(0, 0, 0, 1);

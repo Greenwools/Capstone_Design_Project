@@ -20,6 +20,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject _inventoryUI;
     [SerializeField] private AnomalyManager _anomalyManager;
     [SerializeField] private ToolTipManager _toolTipManager;
+    [SerializeField] private ItemSpawnManager _itemSpawnManager;
     private bool _isPause = false;
     private bool _isInventoryOpen = false;
 
@@ -141,13 +142,15 @@ public class GameManager : MonoBehaviour
     {
         CompleteLoop();
 
+        ResetAllObjects();
+
         if (LoopCount < 2) IsAnomaly = false;
 
         else IsAnomaly = (Random.value > 0.1f);
 
-        ResetAllObjects();
+        if (IsAnomaly) _anomalyManager.TriggerRandomAnomaly();
 
-        _anomalyManager.TriggerRandomAnomaly();
+        _itemSpawnManager.SpawnItem();
     }
 
     public void NextChapeter()

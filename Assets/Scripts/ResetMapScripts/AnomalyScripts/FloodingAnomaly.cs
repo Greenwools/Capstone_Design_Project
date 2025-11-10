@@ -58,12 +58,20 @@ public class FloodingAnomaly : MonoBehaviour, IAnomaly, IResetable
     {
         Debug.Log("연출형 이상 현상(FloodingAnomaly) 발생");
         gameObject.SetActive(true);
+
+        if (WaterAudio != null) WaterAudio.clip.LoadAudioData();
+        if (BreathingAudio != null) BreathingAudio.clip.LoadAudioData();
+        if (HeartBeatAudio != null) HeartBeatAudio.clip.LoadAudioData();
     }
 
     public void ResetState()
     {
         StopAllCoroutines();
         if (_wobbleCoroutine != null) StopCoroutine(_wobbleCoroutine);
+
+        if (WaterAudio != null) WaterAudio.clip.UnloadAudioData();
+        if (BreathingAudio != null) BreathingAudio.clip.UnloadAudioData();
+        if (HeartBeatAudio != null) HeartBeatAudio.clip.UnloadAudioData();
 
         WaterAudio.Stop();
         if (BreathingAudio != null) BreathingAudio.Stop();
@@ -165,15 +173,11 @@ public class FloodingAnomaly : MonoBehaviour, IAnomaly, IResetable
 
         DecreaseSanity();
 
-        float timer = 0f;
-        float fadeDuration = 1.5f;
-        while (timer < fadeDuration)
-        {
-            FadeImage.color = new Color(0, 0, 0, timer / fadeDuration);
-            timer += Time.deltaTime;
-            yield return null;
-        }
-        FadeImage.color = new Color(0, 0, 0, 1);
+        float fadeDuration = 1f;
+
+        yield return StartCoroutine(EventManager.Instance.Fade(false, fadeDuration));
+
+        yield return new WaitForSeconds(0.5f);
 
         CharacterController cc = PlayerTransform.GetComponent<CharacterController>();
         cc.enabled = false;
@@ -181,15 +185,7 @@ public class FloodingAnomaly : MonoBehaviour, IAnomaly, IResetable
         PlayerTransform.rotation = SpawnTransform.rotation;
         cc.enabled = true;
 
-        yield return new WaitForSeconds(0.5f);
-        timer = 0f;
-        while (timer < fadeDuration)
-        {
-            FadeImage.color = new Color(0, 0, 0, 1 - (timer / fadeDuration));
-            timer += Time.deltaTime;
-            yield return null;
-        }
-        FadeImage.color = new Color(0, 0, 0, 0);
+        yield return StartCoroutine(EventManager.Instance.Fade(true, fadeDuration));
 
         GameManager.Instance.DecideNextLoopState();
         GameManager.IsPlayerStop = false;

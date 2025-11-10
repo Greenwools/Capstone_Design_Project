@@ -187,6 +187,8 @@ public class PlayerViewInteraction : MonoBehaviour
 
             GameObject[] mainLights = GameObject.FindGameObjectsWithTag("MainLight");
             foreach (GameObject light in mainLights) light.SetActive(false);
+
+            EventManager.Instance.UpdateObjective("");
         }
 
         yield return StartCoroutine(EventManager.Instance.Fade(true, FadeDuration));
