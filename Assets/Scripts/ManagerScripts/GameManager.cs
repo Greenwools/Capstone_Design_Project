@@ -51,25 +51,28 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     void LateUpdate()
     {
-        if (Input.GetKeyDown(KeyCode.Escape))
+        if (!IsPlayerStop)
         {
-            if (_isInventoryOpen)
+            if (Input.GetKeyDown(KeyCode.Escape))
             {
+                if (_isInventoryOpen)
+                {
 
+                    ToggleInventory();
+                }
+
+                else
+                {
+                    if (_isPause) CloseMenu();
+
+                    else OpenMenu();
+                }
+            }
+
+            if (HasBackpack && !_isPause && (Input.GetKeyDown(KeyCode.Tab) || Input.GetKeyDown(KeyCode.I)))
+            {
                 ToggleInventory();
             }
-
-            else
-            {
-                if (_isPause) CloseMenu();
-
-                else OpenMenu();
-            }
-        }
-
-        if (HasBackpack && !_isPause && (Input.GetKeyDown(KeyCode.Tab) || Input.GetKeyDown(KeyCode.I))) 
-        {
-            ToggleInventory();
         }
     }
 

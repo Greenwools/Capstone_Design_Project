@@ -193,6 +193,6 @@ public class FloodingAnomaly : MonoBehaviour, IAnomaly, IResetable
 
     private void DecreaseSanity()
     {
-
+        PlayerSanity.Instance.DecreaseSanity(20f);
     }
 }
