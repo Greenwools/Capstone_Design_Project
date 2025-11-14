@@ -35,7 +35,7 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (GameManager.IsPlayerStop)
+        if (GameManager.IsPlayerStop || GameManager.Instance.IsUIOpen())
         {
             _audioSource.Stop();
             return;
