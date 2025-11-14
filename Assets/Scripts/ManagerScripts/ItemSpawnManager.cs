@@ -33,7 +33,7 @@ public class ItemSpawnManager : MonoBehaviour, IResetable
         if (Random.value < SpawnProbability)
         {
             Transform spawnPoint = SpawnPoints[Random.Range(0, SpawnPoints.Count)];
-            _spawnedItem = Instantiate(ItemPrefab, spawnPoint.position, spawnPoint.rotation);
+            _spawnedItem = Instantiate(ItemPrefab, spawnPoint.position, spawnPoint.rotation, spawnPoint.parent);
         }
     }
 }

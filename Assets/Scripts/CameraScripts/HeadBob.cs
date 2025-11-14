@@ -33,7 +33,7 @@ public class HeadBob : MonoBehaviour
     {
         if (!IsHeadBob) return;
 
-        if (GameManager.IsPlayerStop)
+        if (GameManager.IsPlayerStop || GameManager.Instance.IsUIOpen())
         {
             transform.localPosition = Vector3.Lerp(transform.localPosition, _startPos, Time.deltaTime * StopSpeed);
             timer = 0f;

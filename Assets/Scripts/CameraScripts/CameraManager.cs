@@ -19,7 +19,7 @@ public class CameraManager : MonoBehaviour
     // Update is called once per frame
     void LateUpdate()
     {
-        if (GameManager.IsPlayerStop) return;   
+        if (GameManager.IsPlayerStop || GameManager.Instance.IsUIOpen()) return;   
 
         if (_delay > 0)
         {

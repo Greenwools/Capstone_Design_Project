@@ -21,11 +21,11 @@ public class GameManager : MonoBehaviour
     [SerializeField] private AnomalyManager _anomalyManager;
     [SerializeField] private ToolTipManager _toolTipManager;
     [SerializeField] private ItemSpawnManager _itemSpawnManager;
-    private bool _isPause = false;
-    private bool _isInventoryOpen = false;
-
     private Coroutine _soundCoroutine;
-    private AudioSource _audioSource;
+    private bool _isInventoryOpen = false;
+    private bool _isPause = false;
+
+    public AudioSource _audioSource;
     public AudioClip InventorySoundClip;
     public float InventorySoundPitch = 1.2f;
 
@@ -49,30 +49,26 @@ public class GameManager : MonoBehaviour
     }
 
     // Update is called once per frame
-    void LateUpdate()
+    void Update()
     {
-        if (!IsPlayerStop)
+        if (Input.GetKeyDown(KeyCode.Escape))
         {
-            if (Input.GetKeyDown(KeyCode.Escape))
-            {
-                if (_isInventoryOpen)
-                {
-
-                    ToggleInventory();
-                }
-
-                else
-                {
-                    if (_isPause) CloseMenu();
-
-                    else OpenMenu();
-                }
-            }
-
-            if (HasBackpack && !_isPause && (Input.GetKeyDown(KeyCode.Tab) || Input.GetKeyDown(KeyCode.I)))
+            if (_isInventoryOpen)
             {
                 ToggleInventory();
             }
+
+            else
+            {
+                if (_isPause) CloseMenu();
+
+                else OpenMenu();
+            }
+        }
+
+        if (HasBackpack && !_isPause && (Input.GetKeyDown(KeyCode.Tab) || Input.GetKeyDown(KeyCode.I)))
+        {
+            ToggleInventory();
         }
     }
 
@@ -102,7 +98,7 @@ public class GameManager : MonoBehaviour
         _isInventoryOpen = !_isInventoryOpen;
 
         _inventoryUI.SetActive(_isInventoryOpen);
-        IsPlayerStop = _isInventoryOpen;
+        //IsPlayerStop = _isInventoryOpen;
         _audioSource.pitch = InventorySoundPitch;
 
         if (_isInventoryOpen)
@@ -160,6 +156,11 @@ public class GameManager : MonoBehaviour
     {
         CurrentChapter++;
         Debug.Log("스토리 진행 후 현재 챕터 : " + CurrentChapter);
+    }
+
+    public bool IsUIOpen()
+    {
+        return _isPause || _isInventoryOpen;
     }
     
     private IEnumerator PlaySoundSegment(AudioClip clip, float startTime, float endTime)
