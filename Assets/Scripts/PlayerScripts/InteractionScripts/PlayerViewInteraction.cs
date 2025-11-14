@@ -130,7 +130,7 @@ public class PlayerViewInteraction : MonoBehaviour
             {
                 _audioSource.pitch = 1.45f;
                 _audioSource.PlayOneShot(AudioClips[3]);
-                DecreaseSansity();
+                DecreaseSanity();
                 StartCoroutine(TeleportPlayer());
             }
         }
@@ -146,7 +146,7 @@ public class PlayerViewInteraction : MonoBehaviour
 
             else if (objName.Contains("LeftExit"))
             {
-                DecreaseSansity();
+                DecreaseSanity();
                 StartCoroutine(HorrorEventAndTeleport());
             }
         }
@@ -161,9 +161,10 @@ public class PlayerViewInteraction : MonoBehaviour
         StartCoroutine(TeleportPlayer());
     }
 
-    private void DecreaseSansity()
+    private void DecreaseSanity()
     {
         Debug.Log("정신력 감소");
+        PlayerSanity.Instance.DecreaseSanity(20f);
     }
 
     private IEnumerator TeleportPlayer()

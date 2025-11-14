@@ -2,10 +2,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using System;
 
 public class InventoryManager : MonoBehaviour
 {
     public static InventoryManager Instance;
+    public static event Action OnInventoryChanged;
 
     public List<Item> Items = new List<Item>();
     public int InventorySize = 12;
@@ -31,12 +33,15 @@ public class InventoryManager : MonoBehaviour
 
         Items.Add(item);
         Debug.Log(item.ItemName + "¿ª(∏¶) »πµÊ«ﬂ¥Ÿ.");
+
+        OnInventoryChanged?.Invoke();
         return true;
     }
 
-    private void Remove(Item item)
+    public void Remove(Item item)
     {
         Items.Remove(item);
+        OnInventoryChanged?.Invoke();
     }
 
     public bool HasAllRequiredItemsForCurrentChapter()

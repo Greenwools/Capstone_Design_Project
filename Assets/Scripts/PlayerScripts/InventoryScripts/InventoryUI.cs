@@ -18,6 +18,13 @@ public class InventoryUI : MonoBehaviour
     {
         CreateSlots(12, ItemsParent.transform, _slots);
         CreateSlots(3, ImportantItemsParent.transform, _importantSlots);
+
+        InventoryManager.OnInventoryChanged += UpdateUI;
+    }
+
+    private void OnDestroy()
+    {
+        InventoryManager.OnInventoryChanged -= UpdateUI;
     }
 
     private void OnEnable()

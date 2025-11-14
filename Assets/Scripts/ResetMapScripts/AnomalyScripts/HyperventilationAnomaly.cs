@@ -99,9 +99,9 @@ public class HyperventilationAnomaly : MonoBehaviour, IAnomaly, IResetable
             // 시간에 따라 효과가 서서히 강해졌다가 약해지도록 하는 수식 (깃허브 공개 코드 참고)
             float curve = Mathf.Sin(timer / EffectDuration * Mathf.PI);
 
-            _lensDistortion.intensity.value = MaxLensDistortion * curve;
-            _chromaticAberration.intensity.value = MaxChromaticAberration * curve;
-            _vignette.intensity.value = MaxVignetteIntensity * curve;
+            _lensDistortion.intensity.value = MaxLensDistortion * curve * 1.5f;
+            _chromaticAberration.intensity.value = MaxChromaticAberration * curve * 1.5f;
+            _vignette.intensity.value = MaxVignetteIntensity * curve * 1.5f;
 
             _headBob.WalkHeadBobIntensity = _orginalWalkIntensity + (_orginalWalkIntensity * HeadBobMultiplier * curve);
 

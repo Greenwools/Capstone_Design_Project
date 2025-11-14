@@ -111,6 +111,6 @@ public class JumpScareAnomaly : MonoBehaviour, IAnomaly, IResetable
 
     private void DecreaseSansity()
     {
-
+        PlayerSanity.Instance.DecreaseSanity(20f);
     }
 }
