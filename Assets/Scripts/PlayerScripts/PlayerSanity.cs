@@ -121,6 +121,34 @@ public class PlayerSanity : MonoBehaviour
         CheckSanityState();
     }
 
+    public float GetCurrentSanity()
+    {
+        return _currentSanity;
+    }
+
+    public void LoadSanity(float loadedSanity)
+    {
+        _currentSanity = loadedSanity;
+        Debug.Log("정신력 로드 완료 : " + _currentSanity);
+
+        CheckSanityState();
+    }
+
+    public void InitializeSanity()
+    {
+        _currentSanity = MaxSanity;
+
+        if (MyCamera != null) _headBob = MyCamera.GetComponent<HeadBob>();
+        if (_headBob != null) _originalWalkIntensity = _headBob.WalkHeadBobIntensity;
+
+        if (PostProcessVolume != null)
+        {
+            PostProcessVolume.profile.TryGet(out _lensDistortion);
+            PostProcessVolume.profile.TryGet(out _vignette);
+            PostProcessVolume.profile.TryGet(out _chromaticAberration);
+        }
+    }
+
     private IEnumerator ApplySanityEffects(bool enable)
     {
         if (_lensDistortion != null && _wobbleCoroutine != null) StopCoroutine(_wobbleCoroutine);

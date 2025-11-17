@@ -21,9 +21,9 @@ public class ObjectStateResseter : MonoBehaviour, IResetable
 
     public void ResetState()
     {
-        _initialPosition = transform.position;
-        _initialRotation = transform.rotation;
-        _initialScale = transform.localScale;
+        transform.position = _initialPosition;
+        transform.rotation = _initialRotation;
+        transform.localScale = _initialScale;
 
         if (_doorInteraction != null && _doorInteraction.IsOpen()) _doorInteraction.ToggleDoor();
     }

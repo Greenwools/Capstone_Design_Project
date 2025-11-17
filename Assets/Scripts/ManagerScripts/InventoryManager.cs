@@ -13,6 +13,7 @@ public class InventoryManager : MonoBehaviour
     public int InventorySize = 12;
 
     public List<RequiredItems> ChapterRequirements;
+    public List<Item> AllPossibleItems;
 
     void Awake()
     {
@@ -23,6 +24,24 @@ public class InventoryManager : MonoBehaviour
         }
 
         Instance = this;
+    }
+
+    public bool HasItem(Item itemToCheck)
+    {
+        return Items.Contains(itemToCheck);
+    }
+
+    public void LoadInventory(List<string> itemNames)
+    {
+        Items.Clear();
+
+        foreach (string name in itemNames)
+        {
+            Item item = AllPossibleItems.FirstOrDefault(i => i.name == name);
+            if (item != null) Items.Add(item);
+        }
+
+        OnInventoryChanged?.Invoke();
     }
 
     public bool Add(Item item)

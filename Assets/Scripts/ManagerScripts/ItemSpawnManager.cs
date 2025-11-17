@@ -15,6 +15,9 @@ public class ItemSpawnManager : MonoBehaviour, IResetable
     void Awake()
     {
         Instance = this;
+
+        if (GameManager.Instance != null)
+            GameManager.Instance.RegisterItemSpawnManager(this);
     }
 
     public void ResetState()

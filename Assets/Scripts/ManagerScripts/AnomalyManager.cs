@@ -17,6 +17,9 @@ public class AnomalyManager : MonoBehaviour
         }
 
         Instance = this;
+
+        if (GameManager.Instance != null)
+            GameManager.Instance.RegisterAnomalyManager(this);
     }
 
     public void TriggerRandomAnomaly()

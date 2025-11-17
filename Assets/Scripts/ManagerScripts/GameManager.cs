@@ -3,10 +3,15 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 using System.Linq;
-using UnityEditor;
+using UnityEngine.SceneManagement;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 
 public class GameManager : MonoBehaviour
 {
+    private static GameManagerData _loadedDataBuffer;
+    private static bool _dataLoaded = false;
+
     public static GameManager Instance;
 
     public static int LoopCount = 0;
@@ -21,20 +26,21 @@ public class GameManager : MonoBehaviour
     [SerializeField] private AnomalyManager _anomalyManager;
     [SerializeField] private ToolTipManager _toolTipManager;
     [SerializeField] private ItemSpawnManager _itemSpawnManager;
+    [SerializeField] private Transform _playerTransform;
+
     private Coroutine _soundCoroutine;
     private bool _isInventoryOpen = false;
     private bool _isPause = false;
 
     public AudioSource _audioSource;
     public AudioClip InventorySoundClip;
-    public float InventorySoundPitch = 1.2f;
 
+    public float InventorySoundPitch = 1.2f;
     public float OpenSoundStartTime = 0f;
     public float OpenSoundEndTime = 0.9f;
     public float CloseSoundStartTime = 1.4f;
     public float CloseSoundEndTime = 2.2f;
 
-    // Start is called before the first frame update
     void Awake()
     {
         if (Instance != null && Instance != this)
@@ -46,17 +52,27 @@ public class GameManager : MonoBehaviour
         Instance = this;
 
         _audioSource = GetComponent<AudioSource>();
+
+        DontDestroyOnLoad(gameObject);
+    }
+
+    void Start()
+    {
+        if (_dataLoaded) ApplyLoadedData();
+
+        else InitializeNewGame();
+
+        _dataLoaded = false;
     }
 
     // Update is called once per frame
     void Update()
     {
+        if (IsPlayerStop) return;
+
         if (Input.GetKeyDown(KeyCode.Escape))
         {
-            if (_isInventoryOpen)
-            {
-                ToggleInventory();
-            }
+            if (_isInventoryOpen) ToggleInventory();
 
             else
             {
@@ -69,6 +85,64 @@ public class GameManager : MonoBehaviour
         if (HasBackpack && !_isPause && (Input.GetKeyDown(KeyCode.Tab) || Input.GetKeyDown(KeyCode.I)))
         {
             ToggleInventory();
+        }
+    }
+
+    private void InitializeNewGame()
+    {
+        Debug.Log("새 게임 시작");
+        LoopCount = 0;
+        CurrentChapter = 1;
+        IsAnomaly = false;
+        IsPlayerStop = true;
+        HasBackpack = false;
+        CanSprint = false;
+
+        if (PlayerSanity.Instance != null) PlayerSanity.Instance.InitializeSanity();
+    }
+
+    private void ApplyLoadedData()
+    {
+        Debug.Log($"로드된 데이터 적용 : Loop {LoopCount}, Chapter {CurrentChapter}");
+
+        IsPlayerStop = false;
+        CanSprint = true;
+
+        if (_loadedDataBuffer != null)
+        {
+            if (PlayerSanity.Instance != null)
+                PlayerSanity.Instance.LoadSanity(_loadedDataBuffer.CurrentSanity);
+
+            if (InventoryManager.Instance != null)
+                InventoryManager.Instance.LoadInventory(_loadedDataBuffer.InventoryItemNames);
+
+            StartCoroutine(ApplyPlayerPositionAfterRegistration());
+        }
+
+        if (LoopCount >= 2)
+        {
+            GameObject[] mainLights = GameObject.FindGameObjectsWithTag("MainLight");
+            foreach (GameObject light in mainLights) light.SetActive(false);
+        }
+    }
+
+    private void SaveGameData()
+    {
+        GameManagerData data = new GameManagerData(this, GetPlayerTransform());
+        SaveSystem.SaveGame(data);
+    }
+
+    public static void LoadGameDataFromTitle()
+    {
+        GameManagerData data = SaveSystem.LoadGame();
+        if (data != null)
+        {
+            LoopCount = data.LoopCount;
+            CurrentChapter = data.CurrentChapter;
+            HasBackpack = data.HasBackpack;
+
+            _loadedDataBuffer = data;
+            _dataLoaded = true;
         }
     }
 
@@ -119,6 +193,25 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public void DecideNextLoopState()
+    {
+        CompleteLoop();
+
+        ResetAllObjects();
+
+        if (LoopCount == 1) CanSprint = true;
+
+        if (LoopCount < 2) IsAnomaly = false;
+
+        else IsAnomaly = (Random.value > 0.1f);
+
+        if (IsAnomaly) _anomalyManager.TriggerRandomAnomaly();
+
+        if (_itemSpawnManager != null) _itemSpawnManager.SpawnItem();
+
+        SaveGameData();
+    }
+
     public void ResetAllObjects()
     {
         IResetable[] resetableObjects = FindObjectsOfType<MonoBehaviour>().OfType<IResetable>().ToArray();
@@ -137,21 +230,6 @@ public class GameManager : MonoBehaviour
         Debug.Log("누적 루프 횟수 : " + LoopCount);
     }
 
-    public void DecideNextLoopState()
-    {
-        CompleteLoop();
-
-        ResetAllObjects();
-
-        if (LoopCount < 2) IsAnomaly = false;
-
-        else IsAnomaly = (Random.value > 0.1f);
-
-        if (IsAnomaly) _anomalyManager.TriggerRandomAnomaly();
-
-        _itemSpawnManager.SpawnItem();
-    }
-
     public void NextChapeter()
     {
         CurrentChapter++;
@@ -162,7 +240,72 @@ public class GameManager : MonoBehaviour
     {
         return _isPause || _isInventoryOpen;
     }
-    
+
+    public Transform GetPlayerTransform()
+    {
+        if (_playerTransform == null)
+        {
+            GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+            if (playerObj != null) _playerTransform = playerObj.transform;
+        }
+
+        return _playerTransform;
+    }
+
+    public void RegisterMenuUI(GameObject menu)
+    {
+        _menuUI = menu;
+        _menuUI.SetActive(false);
+    }
+
+    public void RegisterInventoryUI(GameObject inventory)
+    {
+        _inventoryUI = inventory;
+        _inventoryUI.SetActive(false);
+    }
+
+    public void RegisterPlayer(Transform player)
+    {
+        _playerTransform = player;
+    }
+
+    public void RegisterAnomalyManager(AnomalyManager manager)
+    {
+        _anomalyManager = manager;
+    }
+
+    public void RegisterItemSpawnManager(ItemSpawnManager manager)
+    {
+        _itemSpawnManager = manager;
+    }
+
+    public void RegisterToolTipManager(ToolTipManager manager)
+    {
+        _toolTipManager = manager;
+    }
+
+    private IEnumerator ApplyPlayerPositionAfterRegistration()
+    {
+        while (_playerTransform == null)
+        {
+            yield return null;
+        }
+
+        if (_loadedDataBuffer.PlayerPosition != null)
+        {
+            Vector3 pos = new Vector3(_loadedDataBuffer.PlayerPosition[0], _loadedDataBuffer.PlayerPosition[1], _loadedDataBuffer.PlayerPosition[2]);
+            Quaternion rot = new Quaternion(_loadedDataBuffer.PlayerRotation[0], _loadedDataBuffer.PlayerRotation[1], _loadedDataBuffer.PlayerRotation[2], _loadedDataBuffer.PlayerRotation[3]);
+
+            CharacterController cc = _playerTransform.GetComponent<CharacterController>();
+            if (cc != null) cc.enabled = false;
+            _playerTransform.position = pos;
+            _playerTransform.rotation = rot;
+            if (cc != null) cc.enabled = true;
+        }
+
+        _loadedDataBuffer = null;
+    }
+
     private IEnumerator PlaySoundSegment(AudioClip clip, float startTime, float endTime)
     {
         _audioSource.clip = clip;

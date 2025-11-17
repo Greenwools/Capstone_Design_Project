@@ -16,6 +16,9 @@ public class InventoryUI : MonoBehaviour
     // Start is called before the first frame update
     void Awake ()
     {
+        if (GameManager.Instance != null)
+            GameManager.Instance.RegisterInventoryUI(transform.parent.gameObject);
+
         CreateSlots(12, ItemsParent.transform, _slots);
         CreateSlots(3, ImportantItemsParent.transform, _importantSlots);
 

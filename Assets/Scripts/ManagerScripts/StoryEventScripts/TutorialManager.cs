@@ -14,11 +14,19 @@ public class TutorialManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        _eventManager = EventManager.Instance;
+        if (GameManager.LoopCount == 0)
+        {
+            _eventManager = EventManager.Instance;
 
-        GameManager.IsPlayerStop = true;
+            GameManager.IsPlayerStop = true;
 
-        StartCoroutine(StartTutorialSequence());
+            StartCoroutine(StartTutorialSequence());
+        }
+
+        else
+        {
+            Destroy(gameObject);
+        }
     }
 
     private IEnumerator StartTutorialSequence()

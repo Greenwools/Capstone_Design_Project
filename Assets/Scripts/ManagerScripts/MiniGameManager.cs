@@ -8,12 +8,11 @@ public class MiniGameManager : MonoBehaviour
     public static MiniGameManager Instance;
 
     private Item _itemUsed;
+    private GameObject _checkPannel;
+    private Slider _checkSlider;
+    private RectTransform _successZone;
     private bool _checkRunning = false;
     private float _successMin, _successMax;
-
-    public GameObject SkillCheckPannel;
-    public Slider SkillCheckSlider;
-    public RectTransform SuccessZone;
 
     public int TotalSuccessCount = 3;
     public float SliderSpeed = 1.2f;
@@ -26,7 +25,14 @@ public class MiniGameManager : MonoBehaviour
 
     private void Awake()
     {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
         Instance = this;
+
+        Audio = GetComponent<AudioSource>();
     }
 
     private void OnSkillCheckResult(bool success)
@@ -64,16 +70,30 @@ public class MiniGameManager : MonoBehaviour
         this._itemUsed = item;
         StartCoroutine(SkillCheckSequence());
     }
+    public void RegisterMiniGameUI(GameObject mini)
+    {
+        _checkPannel = mini;
+        _checkSlider = mini.GetComponentInChildren<Slider>();
+
+        if (_checkSlider != null)
+        {
+            Transform zoneTransform = _checkSlider.transform.Find("Success_Zone");
+
+            if (zoneTransform != null) _successZone = zoneTransform.GetComponent<RectTransform>();
+        }
+
+        _checkPannel.gameObject.SetActive(false);
+    }
 
     private IEnumerator SkillCheckSequence()
     {
         _checkRunning = true;
-        SkillCheckPannel.SetActive(true);
+        _checkPannel.SetActive(true);
         int successCount = 0;
 
         GameManager.IsPlayerStop = true;
 
-        SuccessZone.localScale = new Vector3(0.8f, 0.375f, 0.8f);
+        _successZone.localScale = new Vector3(0.8f, 0.375f, 0.8f);
 
         while (successCount < TotalSuccessCount)
         {
@@ -85,10 +105,10 @@ public class MiniGameManager : MonoBehaviour
             _successMin = startZone;
             _successMax = endZone;
 
-            SuccessZone.anchorMin = new Vector2(startZone, 0);
-            SuccessZone.anchorMax = new Vector2(endZone, 1);
-            SuccessZone.offsetMin = Vector2.zero;
-            SuccessZone.offsetMax = Vector2.zero;
+            _successZone.anchorMin = new Vector2(startZone, 0);
+            _successZone.anchorMax = new Vector2(endZone, 1);
+            _successZone.offsetMin = Vector2.zero;
+            _successZone.offsetMax = Vector2.zero;
 
             bool inputPressed = false;
             float timer = 0f;
@@ -99,7 +119,7 @@ public class MiniGameManager : MonoBehaviour
                 timer += Time.unscaledDeltaTime / SliderSpeed;
 
                 currentSliderValue = Mathf.PingPong(timer, 1f);
-                SkillCheckSlider.value = currentSliderValue;
+                _checkSlider.value = currentSliderValue;
 
                 if (Input.GetKeyDown(KeyCode.Space))
                 {
@@ -124,7 +144,7 @@ public class MiniGameManager : MonoBehaviour
             else
             {
                 OnSkillCheckResult(false);
-                SkillCheckPannel.SetActive(false);
+                _checkPannel.SetActive(false);
                 _checkRunning = false;
                 GameManager.IsPlayerStop = false;
                 yield break;
@@ -132,7 +152,7 @@ public class MiniGameManager : MonoBehaviour
         }
 
         OnSkillCheckResult(true);
-        SkillCheckPannel.SetActive(false);
+        _checkPannel.SetActive(false);
         _checkRunning = false;
 
         GameManager.IsPlayerStop = false;
