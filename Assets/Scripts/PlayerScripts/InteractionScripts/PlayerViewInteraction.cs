@@ -39,10 +39,31 @@ public class PlayerViewInteraction : MonoBehaviour
             _audioSource.playOnAwake = false;
         }
 
-        GameManager.LoopCount = 0;
-        GameManager.IsAnomaly = false;
-        if (StairBlockWall != null ) StairBlockWall.SetActive(true);
-        if (TutorialNote != null ) TutorialNote.SetActive(false);
+        if (GameManager.Instance != null && PlayerTransform != null)
+            GameManager.Instance.RegisterPlayer(PlayerTransform);
+
+        if (GameManager.LoopCount <= 1)
+        {
+            if (GameManager.LoopCount == 0)
+            {
+                if (OnDeskObject != null) OnDeskObject.SetActive(true);
+            }
+            if (GameManager.LoopCount == 1)
+            {
+                GameManager.CanSprint = true;
+                if (OnDeskObject != null) OnDeskObject.SetActive(!GameManager.HasBackpack);
+            }
+            if (StairBlockWall != null) StairBlockWall.SetActive(true);
+            if (TutorialNote != null) TutorialNote.SetActive(false);
+        }
+
+        else
+        {
+            GameManager.CanSprint = true;
+            if (OnDeskObject != null) OnDeskObject.SetActive(!GameManager.HasBackpack);
+            if (StairBlockWall != null) StairBlockWall.SetActive(false);
+            if (TutorialNote != null) TutorialNote.SetActive(true);
+        }
     }
 
     // Update is called once per frame
@@ -226,7 +247,6 @@ public class PlayerViewInteraction : MonoBehaviour
         _audioSource.PlayOneShot(AudioClips[4]);
 
         GameManager.HasBackpack = true;
-        Destroy(backpack);
 
         if (OnDeskObject != null) OnDeskObject.SetActive(false);
 

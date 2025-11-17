@@ -53,7 +53,7 @@ public class PlayerController : MonoBehaviour
 
         _isRun = false;
 
-        if (GameManager.LoopCount >= 1 && GameManager.CanSprint && Input.GetKey(KeyCode.LeftShift))
+        if (GameManager.CanSprint && Input.GetKey(KeyCode.LeftShift))
         {
             currentSpeed = RunSpeed;
             _isRun = true;

@@ -8,10 +8,10 @@ public class ToolTipManager : MonoBehaviour
     public Text ItemNameText;
     public Text ItemExplainText;
 
-    // Update is called once per frame
-    void Update()
+    void Awake()
     {
-        
+        if (GameManager.Instance != null)
+            GameManager.Instance.RegisterToolTipManager(this);
     }
 
     public void ShowToolTip(Item item)
