@@ -4,11 +4,24 @@ using UnityEngine;
 
 public class CameraManager : MonoBehaviour
 {
+    public static CameraManager Instance;
+
     public float MouseSensity = 500.0f;
     public Transform PlayerTransform;
 
     private float _xRot = 0f;
     private float _delay = 0.2f;     // 게임 시작 시 카메라 시야가 이상해서 초반 입력 무시용 딜레이
+
+    void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        Instance = this;
+    }
 
     // Start is called before the first frame update
     void Start()
@@ -40,5 +53,15 @@ public class CameraManager : MonoBehaviour
 
         transform.localRotation = Quaternion.Euler(_xRot, 0f, 0f);
         PlayerTransform.Rotate(Vector3.up * mouseX);
+    }
+
+    public float GetXRotation()
+    {
+        return _xRot;
+    }
+
+    public void SetXRotation(float xRot)
+    {
+        _xRot = xRot;
     }
 }

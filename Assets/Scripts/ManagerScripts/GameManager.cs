@@ -116,6 +116,8 @@ public class GameManager : MonoBehaviour
             if (InventoryManager.Instance != null)
                 InventoryManager.Instance.LoadInventory(_loadedDataBuffer.InventoryItemNames);
 
+            if (CameraManager.Instance != null) CameraManager.Instance.SetXRotation(_loadedDataBuffer.CameraXRot);
+
             StartCoroutine(ApplyPlayerPositionAfterRegistration());
         }
 
