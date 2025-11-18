@@ -52,6 +52,7 @@ public class GameManagerData
     public int CurrentChapter;
     public bool HasBackpack;
     public float CurrentSanity;
+    public float CameraXRot;
 
     public List<string> InventoryItemNames;
     public float[] PlayerPosition;
@@ -73,6 +74,8 @@ public class GameManagerData
                 InventoryItemNames.Add(item.name);
             }
         }
+
+        if (CameraManager.Instance != null) CameraXRot = CameraManager.Instance.GetXRotation();
 
         if (playerTransform != null)
         {

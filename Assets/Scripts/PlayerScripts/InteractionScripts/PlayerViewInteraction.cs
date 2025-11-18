@@ -22,6 +22,7 @@ public class PlayerViewInteraction : MonoBehaviour
     public Image FadeImage;
     public float FadeDuration = 1f;
 
+    public Item TutorialNoteItem;
     public GameObject StairBlockWall;
     public GameObject TutorialNote;
     public GameObject OnDeskObject;
@@ -62,16 +63,20 @@ public class PlayerViewInteraction : MonoBehaviour
             GameManager.CanSprint = true;
             if (OnDeskObject != null) OnDeskObject.SetActive(!GameManager.HasBackpack);
             if (StairBlockWall != null) StairBlockWall.SetActive(false);
-            if (TutorialNote != null) TutorialNote.SetActive(true);
+            if (TutorialNote != null)
+            {
+                bool hasNote = InventoryManager.Instance.HasItem(TutorialNoteItem);
+                TutorialNote.SetActive(GameManager.LoopCount == 2 && !hasNote);
+            }
         }
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (GameManager.IsPlayerStop) return;
+        if (GameManager.IsPlayerStop || GameManager.Instance.IsUIOpen()) return;
 
-        if (GameManager.LoopCount >= 2 && Input.GetMouseButtonDown(1))
+        if (GameManager.LoopCount >= 2 && !GameManager.Instance.IsUIOpen() && Input.GetMouseButtonDown(1))
         {
             if (_flashLight != null)
             {
