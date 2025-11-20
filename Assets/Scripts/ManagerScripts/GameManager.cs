@@ -201,6 +201,13 @@ public class GameManager : MonoBehaviour
 
         ResetAllObjects();
 
+        if (CurrentChapter >= 4)
+        {
+            IsAnomaly = false;
+            SaveGameData();
+            return;
+        }
+
         if (LoopCount == 1) CanSprint = true;
 
         if (LoopCount < 2) IsAnomaly = false;
