@@ -2,11 +2,26 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[System.Serializable]
+public class EssentialItemData
+{
+    public Item ItemAsset;
+    public GameObject ItemPrefab;
+    public string ItemName;
+    public int RequiredChapter;
+    public int RequiredLoop;
+    public List<Transform> SpawnPoints;
+
+    [HideInInspector] public GameObject SpawnedInstance;
+}
+
 public class ItemSpawnManager : MonoBehaviour, IResetable
 {
     public static ItemSpawnManager Instance;
 
     private GameObject _spawnedItem;
+
+    public List<EssentialItemData> EssentialItems;
 
     public GameObject ItemPrefab;
     public List<Transform> SpawnPoints;
@@ -22,21 +37,33 @@ public class ItemSpawnManager : MonoBehaviour, IResetable
 
     public void ResetState()
     {
-        if (_spawnedItem != null)
+        foreach (var data in EssentialItems)
         {
-            Destroy(_spawnedItem);
-            _spawnedItem = null;
+            if (data.SpawnedInstance != null)
+            {
+                Destroy(data.SpawnedInstance);
+                data.SpawnedInstance = null;
+            }
         }
     }
 
     public void SpawnItem()
     {
-        if (GameManager.LoopCount < 2 || _spawnedItem != null) return;
-
-        if (Random.value < SpawnProbability)
+        foreach (var data in EssentialItems)
         {
-            Transform spawnPoint = SpawnPoints[Random.Range(0, SpawnPoints.Count)];
-            _spawnedItem = Instantiate(ItemPrefab, spawnPoint.position, spawnPoint.rotation, spawnPoint.parent);
+            if (GameManager.CurrentChapter == data.RequiredChapter && GameManager.LoopCount >= data.RequiredLoop)
+            {
+                if (InventoryManager.Instance.HasItem(data.ItemAsset)) continue;
+
+                if (data.SpawnedInstance == null)
+                {
+                    Transform point = data.SpawnPoints[Random.Range(0, data.SpawnPoints.Count)];
+                    data.SpawnedInstance = Instantiate(data.ItemPrefab, point.position, point.rotation, point.parent);
+
+                    var pick = data.SpawnedInstance.GetComponent<ItemPickup>();
+                    if (pick != null) pick.OnItemPickUp += (item) => { data.SpawnedInstance = null; };
+                }
+            }
         }
     }
 }

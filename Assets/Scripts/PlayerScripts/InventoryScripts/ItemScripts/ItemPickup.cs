@@ -1,20 +1,20 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 public class ItemPickup : MonoBehaviour
 {
+    public event Action<Item> OnItemPickUp;
+
     public Item item;
 
-    // Start is called before the first frame update
-    void Start()
+    public void Pickup()
     {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        if (InventoryManager.Instance.Add(item))
+        {
+            OnItemPickUp?.Invoke(item);
+            Destroy(gameObject);
+        }
     }
 }

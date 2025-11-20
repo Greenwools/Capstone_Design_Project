@@ -27,6 +27,11 @@ public class PlayerViewInteraction : MonoBehaviour
     public GameObject TutorialNote;
     public GameObject OnDeskObject;
 
+    public ChapterCutScene Chapter1Cut;
+    public ChapterCutScene Chapter2Cut;
+    public ChapterCutScene Chapter3Cut;
+    public string EndingScene = "EndingScene";
+
     // Start is called before the first frame update
     void Start()
     {
@@ -106,7 +111,7 @@ public class PlayerViewInteraction : MonoBehaviour
                 ItemPickup itemPickup = hit.collider.GetComponent<ItemPickup>();
                 if (itemPickup != null)
                 {
-                    if (InventoryManager.Instance.Add(itemPickup.item)) Destroy(hit.collider.gameObject);
+                    itemPickup.Pickup();
                     return;
                 }
 
@@ -182,9 +187,7 @@ public class PlayerViewInteraction : MonoBehaviour
     {
         Debug.Log("필수 아이템 전부 입수 -> " + GameManager.CurrentChapter + "챕터 스토리 시작");
 
-        GameManager.Instance.NextChapeter();
-
-        StartCoroutine(TeleportPlayer());
+        StartCoroutine(PlayStorySequence());
     }
 
     private void DecreaseSanity()
@@ -263,5 +266,31 @@ public class PlayerViewInteraction : MonoBehaviour
         yield return StartCoroutine(EventManager.Instance.Fade(true, 1f));
 
         GameManager.IsPlayerStop = false;
+    }
+
+    private IEnumerator PlayStorySequence()
+    {
+        if (GameManager.CurrentChapter == 1 && Chapter1Cut != null) yield return StartCoroutine(Chapter1Cut.PlayCutscene());
+        else if (GameManager.CurrentChapter == 2 && Chapter2Cut != null) yield return StartCoroutine(Chapter2Cut.PlayCutscene());
+        else if (GameManager.CurrentChapter == 3 && Chapter3Cut != null) yield return StartCoroutine(Chapter3Cut.PlayCutscene());
+        else if (GameManager.CurrentChapter >= 4)
+        {
+            GameManager.IsPlayerStop = true;
+            yield return StartCoroutine(EventManager.Instance.Fade(false, 2f));
+
+            EventManager.Instance.FadePanel.SetActive(true);
+            EventManager.Instance.ShowSubtitle("...그 이후 나는 무사히 건물 밖으로 나와 귀가할 수 있었고,\n다음 날 무사히 발표를 끝마쳤다.", 4f);
+            yield return new WaitForSeconds(2f);
+            EventManager.Instance.ShowSubtitle("꿈이라도 꿨던 것일까 싶으면서도 생생했던 기억은 \n시간이 꽤 흐른 지금도 어제 일처럼 선명하게 기억이 난다.", 4f);
+            yield return new WaitForSeconds(2f);
+            EventManager.Instance.ShowSubtitle("", 4f);
+            yield return new WaitForSeconds(2f);
+
+            SceneManager.LoadScene(EndingScene);
+            yield break;
+        }
+
+        GameManager.Instance.NextChapeter();
+        StartCoroutine(TeleportPlayer());
     }
 }
