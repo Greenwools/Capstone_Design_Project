@@ -31,6 +31,8 @@ public class TutorialManager : MonoBehaviour
 
     private IEnumerator StartTutorialSequence()
     {
+        GameManager.IsPlayerStop = true;
+
         _eventManager.FadePanel.SetActive(true);
         _eventManager.FadePanel.GetComponent<Image>().color = Color.black;
 
@@ -41,6 +43,9 @@ public class TutorialManager : MonoBehaviour
         IntroText.gameObject.SetActive(false);
         yield return StartCoroutine(_eventManager.Fade(true, IntroFadeOutTime));
 
+        EventManager.Instance.ShowSubtitle("..벌써 시간이 이렇게 됐나.", 3f);
+        yield return new WaitForSeconds(2f);
+        
         _eventManager.ShowSubtitle("..어서 짐을 챙기고 집으로 돌아가자.", 3f);
         _eventManager.UpdateObjective("배낭 챙기기");
 

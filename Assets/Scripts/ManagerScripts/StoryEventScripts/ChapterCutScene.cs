@@ -9,6 +9,9 @@ public class ChapterCutScene : MonoBehaviour
     public float[] DialogueDurations; // 각 대사별 출력 시간
     public Transform TeleportLocation; // 플레이어가 이동할 회상 장소
 
+    public float DarkIntensity = 0.7f;
+    public float LookDownAngle = 30f;
+
     public IEnumerator PlayCutscene()
     {
         GameManager.IsPlayerStop = true;
@@ -23,6 +26,15 @@ public class ChapterCutScene : MonoBehaviour
         cc.enabled = true;
 
         yield return StartCoroutine(EventManager.Instance.Fade(true, 1.5f));
+
+        if (CameraManager.Instance != null) CameraManager.Instance.SetXRotation(LookDownAngle); // 30도 아래로
+
+        if (EventManager.Instance.FadePanel != null)
+        {
+            UnityEngine.UI.Image fadeImg = EventManager.Instance.FadePanel.GetComponent<UnityEngine.UI.Image>();
+            fadeImg.color = new Color(0, 0, 0, DarkIntensity); // 0.7 정도의 어둠 유지
+            EventManager.Instance.FadePanel.SetActive(true);
+        }
 
         // 2. 대사 출력
         for (int i = 0; i < DialogueLines.Length; i++)

@@ -69,13 +69,14 @@ public class InventoryManager : MonoBehaviour
 
         if (requirements == null || requirements.RequireItems.Count == 0) 
         {
-            return true;
+            return false;
         }
 
         foreach (Item requireItem in requirements.RequireItems)
         {
             if (!Items.Contains(requireItem))
             {
+                Debug.Log($"필요 아이템 '{requireItem.ItemName}'이(가) 인벤토리에 있습니다.");
                 return false;
             }
         }
