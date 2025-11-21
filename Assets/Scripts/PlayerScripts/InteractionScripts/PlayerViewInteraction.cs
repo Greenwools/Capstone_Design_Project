@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using Unity.VisualScripting;
 
 public class PlayerViewInteraction : MonoBehaviour
 {
@@ -118,6 +119,12 @@ public class PlayerViewInteraction : MonoBehaviour
                 DoorInteraction door = hit.collider.GetComponent<DoorInteraction>();
                 if (door != null && door.enabled) 
                 { 
+                    if (GameManager.LoopCount == 0 && !GameManager.HasBackpack)
+                    {
+                        EventManager.Instance.ShowSubtitle("짐이랑 가방을 챙기고 돌아가야지. 그냥 갈 수는 없지..", 2f);
+                        return;
+                    }
+
                     door.ToggleDoor();
                     return;
                 }
@@ -133,6 +140,12 @@ public class PlayerViewInteraction : MonoBehaviour
                 {
                     string objectName = hit.collider.name;
 
+                    if (GameManager.LoopCount == 1 && objectName.Contains("RightExit"))
+                    {
+                        StartCoroutine(LockedDoorSequence());
+                        return;
+                    }
+
                     if (objectName.Contains("LeftExit") || objectName.Contains("Stairs")) CheckChoice(objectName);
                 }
             }
@@ -141,20 +154,24 @@ public class PlayerViewInteraction : MonoBehaviour
 
     private void CheckChoice(string objName)
     {
+        bool hasRequiredItems = InventoryManager.Instance.HasAllRequiredItemsForCurrentChapter();
+
+        if (hasRequiredItems)
+        {
+            if (objName.Contains("LeftExit"))
+            {
+                TriggerStoryEvent();
+                return;
+            }
+        }
+
         if (!GameManager.IsAnomaly)
         {
             if (objName.Contains("LeftExit"))
             {
-                bool hasRequiredItems = InventoryManager.Instance.HasAllRequiredItemsForCurrentChapter();
-
-                if (hasRequiredItems) TriggerStoryEvent();
-
-                else
-                {
-                    _audioSource.pitch = 1.2f;
-                    _audioSource.PlayOneShot(AudioClips[2]);
-                    StartCoroutine(TeleportPlayer());
-                }
+                _audioSource.pitch = 1.2f;
+                _audioSource.PlayOneShot(AudioClips[2]);
+                StartCoroutine(TeleportPlayer());
             }
 
             else if (objName.Contains("Stairs"))
@@ -219,6 +236,9 @@ public class PlayerViewInteraction : MonoBehaviour
             foreach (GameObject light in mainLights) light.SetActive(false);
 
             EventManager.Instance.UpdateObjective("");
+
+            yield return new WaitForSeconds(FadeDuration + 0.5f);
+            EventManager.Instance.ShowNotification("마우스 우클릭을 눌러 손전등을 사용할 수 있습니다.", 3f);
         }
 
         yield return StartCoroutine(EventManager.Instance.Fade(true, FadeDuration));
@@ -265,6 +285,8 @@ public class PlayerViewInteraction : MonoBehaviour
 
         yield return StartCoroutine(EventManager.Instance.Fade(true, 1f));
 
+        EventManager.Instance.ShowNotification("Tab 키를 눌러 가방(인벤토리)을 열 수 있습니다.", 3f);
+
         GameManager.IsPlayerStop = false;
     }
 
@@ -292,5 +314,23 @@ public class PlayerViewInteraction : MonoBehaviour
 
         GameManager.Instance.NextChapeter();
         StartCoroutine(TeleportPlayer());
+    }
+
+    private IEnumerator LockedDoorSequence()
+    {
+        GameManager.IsPlayerStop = true;
+
+        _audioSource.PlayOneShot(AudioClips[5]);
+
+        EventManager.Instance.ShowSubtitle("문이 잠겨있어..", 3f);
+        yield return new WaitForSeconds(1f);
+
+        EventManager.Instance.ShowSubtitle("어쩔 수 없지. 반대쪽 출입문으로 나가야겠어.", 3f);
+        yield return new WaitForSeconds(1f);
+
+        GameManager.IsPlayerStop = false;
+
+        GameManager.CanSprint = true;
+        EventManager.Instance.ShowNotification("Left Shift를 누르면 달릴 수 있습니다.", 3f);
     }
 }

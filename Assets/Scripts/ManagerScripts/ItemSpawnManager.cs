@@ -15,6 +15,22 @@ public class EssentialItemData
     [HideInInspector] public GameObject SpawnedInstance;
 }
 
+[System.Serializable]
+public class ConsumableItemData
+{
+    public GameObject ItemPrefab;
+    public string ItemName;
+    public List<SpawnPointGroup> SpawnGroups;
+}
+
+[System.Serializable]
+public class SpawnPointGroup
+{
+    public string GroupName;
+    [Range(0f, 1f)] public float SpawnChance = 0.5f;
+    public List<Transform> SpawnPoints;
+}
+
 public class ItemSpawnManager : MonoBehaviour, IResetable
 {
     public static ItemSpawnManager Instance;
@@ -22,6 +38,7 @@ public class ItemSpawnManager : MonoBehaviour, IResetable
     private GameObject _spawnedItem;
 
     public List<EssentialItemData> EssentialItems;
+    public List<ConsumableItemData> ConsumableItems;
 
     public GameObject ItemPrefab;
     public List<Transform> SpawnPoints;
@@ -45,9 +62,21 @@ public class ItemSpawnManager : MonoBehaviour, IResetable
                 data.SpawnedInstance = null;
             }
         }
+
+        GameObject[] consumables = GameObject.FindGameObjectsWithTag("ConsumableItem");
+        foreach (var item in consumables)
+        {
+            Destroy(item);
+        }
     }
 
     public void SpawnItem()
+    {
+        SpawnEssentialItems();
+        SpawnConsumableItems();
+    }
+
+    private void SpawnEssentialItems()
     {
         foreach (var data in EssentialItems)
         {
@@ -62,6 +91,27 @@ public class ItemSpawnManager : MonoBehaviour, IResetable
 
                     var pick = data.SpawnedInstance.GetComponent<ItemPickup>();
                     if (pick != null) pick.OnItemPickUp += (item) => { data.SpawnedInstance = null; };
+                }
+            }
+        }
+    }
+
+    private void SpawnConsumableItems()
+    {
+        if (GameManager.LoopCount < 2) return;
+
+        foreach (var itemData in ConsumableItems)
+        {
+            foreach (var group in itemData.SpawnGroups)
+            {
+                if (Random.value < group.SpawnChance)
+                {
+                    if (group.SpawnPoints.Count > 0)
+                    {
+                        Transform point = group.SpawnPoints[Random.Range(0, group.SpawnPoints.Count)];
+                        GameObject obj = Instantiate(itemData.ItemPrefab, point.position, point.rotation, point.parent);
+                        obj.tag = "ConsumableItem";
+                    }
                 }
             }
         }

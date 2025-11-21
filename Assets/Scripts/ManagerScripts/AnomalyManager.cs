@@ -6,7 +6,8 @@ public class AnomalyManager : MonoBehaviour
 {
     public static AnomalyManager Instance;
 
-    public List<GameObject> AnomalyList;
+    public List<GameObject> SmallAnomalyList;
+    public List<GameObject> MainAnomalyList;
 
     void Awake ()
     {
@@ -26,16 +27,20 @@ public class AnomalyManager : MonoBehaviour
     {
         if (!GameManager.IsAnomaly) return;
 
-        if (AnomalyList.Count > 0) 
+        List<GameObject> currentPool = new List<GameObject>();
+
+        currentPool.AddRange(SmallAnomalyList);
+
+        if (GameManager.CurrentChapter >= 2) currentPool.AddRange(MainAnomalyList);
+
+        if (currentPool.Count > 0)
         {
-            int index = Random.Range(0, AnomalyList.Count);
-            GameObject selectedAnomaly = AnomalyList[index];
+            int index = Random.Range(0, currentPool.Count);
+            GameObject selectedAnomaly = currentPool[index];
 
             IAnomaly anomalyScript = selectedAnomaly.GetComponent<IAnomaly>();
 
             if (anomalyScript != null) anomalyScript.TriggerAnomaly();
-
-            else Debug.LogError(selectedAnomaly.name + "에서 오류");
         }
     }
 }

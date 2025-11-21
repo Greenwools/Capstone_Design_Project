@@ -14,6 +14,7 @@ public class EventManager : MonoBehaviour
     public GameObject SubtitlePanel;
     public Text SubtitleText;
     public Text ObjectiveText;
+    public Text NotificationText;
 
     public Transform PlayerTransform;
     public Transform SpawnTransform;
@@ -49,7 +50,12 @@ public class EventManager : MonoBehaviour
         if (subtitleCoroutine != null) StopCoroutine(subtitleCoroutine);
 
         subtitleCoroutine = StartCoroutine(SubtitleSequence(text, duration));
-    } 
+    }
+    
+    public void ShowNotification(string text, float duration)
+    {
+        StartCoroutine(NotificationSequence(text, duration));
+    }
 
     // 목표 업데이트
     public void UpdateObjective(string text)
@@ -127,5 +133,18 @@ public class EventManager : MonoBehaviour
         yield return StartCoroutine(Fade(true, 1.5f));
 
         GameManager.IsPlayerStop = false;
+    }
+
+    private IEnumerator NotificationSequence(string text, float duration)
+    {
+        if (NotificationText != null)
+        {
+            NotificationText.text = text;
+            NotificationText.gameObject.SetActive(true);
+
+            yield return new WaitForSeconds(duration);
+
+            NotificationText.gameObject.SetActive(false);
+        }
     }
 }
