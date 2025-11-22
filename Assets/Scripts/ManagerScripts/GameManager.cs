@@ -72,6 +72,12 @@ public class GameManager : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Escape))
         {
+            if (NoteUI.Instance != null && NoteUI.Instance.IsReading)
+            {
+                NoteUI.Instance.CloseNote();
+                return;
+            }
+
             if (_isInventoryOpen) ToggleInventory();
 
             else
@@ -214,7 +220,10 @@ public class GameManager : MonoBehaviour
 
         else IsAnomaly = (Random.value > 0.1f);
 
-        if (IsAnomaly) _anomalyManager.TriggerRandomAnomaly();
+        if (IsAnomaly)
+        {
+            if (_anomalyManager != null) _anomalyManager.TriggerRandomAnomaly();
+        }
 
         if (_itemSpawnManager != null) _itemSpawnManager.SpawnItem();
 

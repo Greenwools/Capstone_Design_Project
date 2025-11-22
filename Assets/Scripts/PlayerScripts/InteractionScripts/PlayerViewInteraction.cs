@@ -9,6 +9,7 @@ public class PlayerViewInteraction : MonoBehaviour
 {
     private Camera _mainCamera;
     private Light _flashLight;
+    private bool _CheckedLockedDoor = false;
 
     private AudioSource _audioSource;
     public AudioClip[] AudioClips;
@@ -112,6 +113,11 @@ public class PlayerViewInteraction : MonoBehaviour
                 ItemPickup itemPickup = hit.collider.GetComponent<ItemPickup>();
                 if (itemPickup != null)
                 {
+                    if (itemPickup.item is NoteItem noteItem)
+                    {
+                        if (NoteUI.Instance != null) NoteUI.Instance.ShowNote(noteItem.pages);
+                    }
+
                     itemPickup.Pickup();
                     return;
                 }
@@ -140,9 +146,15 @@ public class PlayerViewInteraction : MonoBehaviour
                 {
                     string objectName = hit.collider.name;
 
-                    if (GameManager.LoopCount == 1 && objectName.Contains("RightExit"))
+                    if (GameManager.LoopCount == 1 && !_CheckedLockedDoor && objectName.Contains("RightExit"))
                     {
                         StartCoroutine(LockedDoorSequence());
+                        return;
+                    }
+
+                    else if (GameManager.LoopCount == 1 && _CheckedLockedDoor && objectName.Contains("RightExit"))
+                    {
+                        _audioSource.PlayOneShot(AudioClips[5], 6f);
                         return;
                     }
 
@@ -236,12 +248,50 @@ public class PlayerViewInteraction : MonoBehaviour
             foreach (GameObject light in mainLights) light.SetActive(false);
 
             EventManager.Instance.UpdateObjective("");
-
-            yield return new WaitForSeconds(FadeDuration + 0.5f);
-            EventManager.Instance.ShowNotification("마우스 우클릭을 눌러 손전등을 사용할 수 있습니다.", 3f);
         }
 
         yield return StartCoroutine(EventManager.Instance.Fade(true, FadeDuration));
+
+        if (GameManager.LoopCount == 1)
+        {
+            EventManager.Instance.ShowSubtitle("...어라? 난 분명 문을 열고 밖으로 나왔는데", 3f);
+            yield return new WaitForSeconds(3f);
+            EventManager.Instance.ShowSubtitle("어째서 다시 건물 내부로 들어온 거지..?", 3f);
+            yield return new WaitForSeconds(1.5f);
+
+            EventManager.Instance.UpdateObjective("들어온 문 확인하기");
+        }
+
+        else if (GameManager.LoopCount == 2)
+        {
+            yield return new WaitForSeconds(1f);
+
+            EventManager.Instance.ShowSubtitle("..또 건물로 들어와진 거야?", 2f);
+            yield return new WaitForSeconds(2f);
+
+            EventManager.Instance.ShowSubtitle("게다가 이번에는 불도 전부 꺼져 있어서 아무것도 안 보이잖아..", 3f);
+            yield return new WaitForSeconds(3f);
+
+            EventManager.Instance.ShowSubtitle("스마트폰 손전등을 켜야겠어.", 2f);
+            yield return new WaitForSeconds(1.5f);
+
+            if (_flashLight != null)
+            {
+                _flashLight.enabled = true;
+                _audioSource.pitch = FlashSoundPitch;
+                _audioSource.PlayOneShot(AudioClips[0]);
+            }
+
+            yield return new WaitForSeconds(1.5f);
+
+            EventManager.Instance.ShowSubtitle("..잠깐, 저기 바닥에 뭔가 떨어져 있는데 뭐지?", 2f);
+            EventManager.Instance.UpdateObjective("바닥에 떨어진 노트 확인하기");
+
+            yield return new WaitForSeconds(2f);
+            EventManager.Instance.ShowNotification("마우스 우클릭을 통해 손전등을 On/Off 할 수 있습니다.", 2f);
+
+            yield return new WaitForSeconds(0.5f);
+        }
 
         GameManager.IsPlayerStop = false;
     }
@@ -285,6 +335,8 @@ public class PlayerViewInteraction : MonoBehaviour
 
         yield return StartCoroutine(EventManager.Instance.Fade(true, 1f));
 
+        yield return new WaitForSeconds(1.5f);
+
         EventManager.Instance.ShowNotification("Tab 키를 눌러 가방(인벤토리)을 열 수 있습니다.", 3f);
 
         GameManager.IsPlayerStop = false;
@@ -319,18 +371,21 @@ public class PlayerViewInteraction : MonoBehaviour
     private IEnumerator LockedDoorSequence()
     {
         GameManager.IsPlayerStop = true;
+        _CheckedLockedDoor = true;
 
-        _audioSource.PlayOneShot(AudioClips[5]);
+        _audioSource.PlayOneShot(AudioClips[5], 3f);
 
-        EventManager.Instance.ShowSubtitle("문이 잠겨있어..", 3f);
-        yield return new WaitForSeconds(1f);
+        EventManager.Instance.ShowSubtitle("문이 잠겨있어.. 안 열려.", 6f);
+        yield return new WaitForSeconds(3f);
 
-        EventManager.Instance.ShowSubtitle("어쩔 수 없지. 반대쪽 출입문으로 나가야겠어.", 3f);
-        yield return new WaitForSeconds(1f);
+        EventManager.Instance.ShowSubtitle("..어쩔 수 없지만 다시 반대쪽으로 나가야겠어.", 3f);
+        yield return new WaitForSeconds(3f);
 
         GameManager.IsPlayerStop = false;
 
         GameManager.CanSprint = true;
+
         EventManager.Instance.ShowNotification("Left Shift를 누르면 달릴 수 있습니다.", 3f);
+        EventManager.Instance.UpdateObjective("왼쪽 출입구로 다시 나가기");
     }
 }
