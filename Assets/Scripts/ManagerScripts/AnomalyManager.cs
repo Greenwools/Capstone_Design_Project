@@ -6,6 +6,8 @@ public class AnomalyManager : MonoBehaviour
 {
     public static AnomalyManager Instance;
 
+    private GameObject _lastTriggeredAnomaly;
+
     public List<GameObject> SmallAnomalyList;
     public List<GameObject> MainAnomalyList;
 
@@ -28,10 +30,14 @@ public class AnomalyManager : MonoBehaviour
         if (!GameManager.IsAnomaly) return;
 
         List<GameObject> currentPool = new List<GameObject>();
-
         currentPool.AddRange(SmallAnomalyList);
 
         if (GameManager.CurrentChapter >= 2) currentPool.AddRange(MainAnomalyList);
+
+        if (_lastTriggeredAnomaly != null && currentPool.Contains(_lastTriggeredAnomaly))
+        {
+            currentPool.Remove(_lastTriggeredAnomaly);
+        }
 
         if (currentPool.Count > 0)
         {
@@ -40,7 +46,11 @@ public class AnomalyManager : MonoBehaviour
 
             IAnomaly anomalyScript = selectedAnomaly.GetComponent<IAnomaly>();
 
-            if (anomalyScript != null) anomalyScript.TriggerAnomaly();
+            if (anomalyScript != null)
+            {
+                anomalyScript.TriggerAnomaly();
+                _lastTriggeredAnomaly = selectedAnomaly;
+            }
         }
     }
 }

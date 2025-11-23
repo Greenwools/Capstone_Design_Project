@@ -44,7 +44,7 @@ public class InventorySlot : MonoBehaviour, IPointerClickHandler, IBeginDragHand
     {
         if (eventData.button == PointerEventData.InputButton.Right && _item != null)
         {
-            if (!_item.IsImportant || _item is NoteItem) _item.Use();
+            if (!_item.IsImportant || _item is NoteItem || _item.itemType == ItemType.Hidden) _item.Use();
         }
     }
 

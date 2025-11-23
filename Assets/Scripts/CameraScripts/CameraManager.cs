@@ -6,7 +6,7 @@ public class CameraManager : MonoBehaviour
 {
     public static CameraManager Instance;
 
-    public float MouseSensity = 500.0f;
+    public float MouseSensity = 300.0f;
     public Transform PlayerTransform;
 
     private float _xRot = 0f;

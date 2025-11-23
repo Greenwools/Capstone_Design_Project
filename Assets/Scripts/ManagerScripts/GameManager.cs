@@ -27,10 +27,12 @@ public class GameManager : MonoBehaviour
     [SerializeField] private ToolTipManager _toolTipManager;
     [SerializeField] private ItemSpawnManager _itemSpawnManager;
     [SerializeField] private Transform _playerTransform;
+    [SerializeField] private Transform _endingTransform;
 
     private Coroutine _soundCoroutine;
     private bool _isInventoryOpen = false;
     private bool _isPause = false;
+    private int _normalLoopCount = 0;
 
     public AudioSource _audioSource;
     public AudioClip InventorySoundClip;
@@ -40,7 +42,8 @@ public class GameManager : MonoBehaviour
     public float OpenSoundEndTime = 0.9f;
     public float CloseSoundStartTime = 1.4f;
     public float CloseSoundEndTime = 2.2f;
-
+    public bool IsMedicineUsed = false;
+    public bool IsEndingReady = false;
     void Awake()
     {
         if (Instance != null && Instance != this)
@@ -216,14 +219,23 @@ public class GameManager : MonoBehaviour
 
         if (LoopCount == 1) CanSprint = true;
 
-        if (LoopCount < 2) IsAnomaly = false;
-
-        else IsAnomaly = (Random.value > 0.1f);
-
-        if (IsAnomaly)
+        if (LoopCount < 2)
         {
-            if (_anomalyManager != null) _anomalyManager.TriggerRandomAnomaly();
+            IsAnomaly = false;
+            _normalLoopCount = 0;
         }
+
+        else
+        {
+            if (_normalLoopCount >= 2) IsAnomaly = true;
+
+            else IsAnomaly = (Random.value > 0.5f);
+        }
+
+        if (IsAnomaly) _normalLoopCount = 0;
+        else _normalLoopCount++;
+
+        if (IsAnomaly && _anomalyManager != null) _anomalyManager.TriggerRandomAnomaly();
 
         if (_itemSpawnManager != null) _itemSpawnManager.SpawnItem();
 
@@ -252,6 +264,11 @@ public class GameManager : MonoBehaviour
     {
         CurrentChapter++;
         Debug.Log("스토리 진행 후 현재 챕터 : " + CurrentChapter);
+    }
+
+    public void MoveToEndingRoom()
+    {
+        
     }
 
     public bool IsUIOpen()

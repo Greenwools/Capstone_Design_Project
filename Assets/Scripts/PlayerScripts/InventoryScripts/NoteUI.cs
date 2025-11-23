@@ -20,6 +20,7 @@ public class NoteUI : MonoBehaviour
     public Button CloseButton;
 
     public bool IsReading => _isReading;
+    public bool HasRead = false;
 
     void Awake()
     {
@@ -66,8 +67,18 @@ public class NoteUI : MonoBehaviour
         _isReading = false;
         NotePannel.SetActive(false);
         GameManager.IsPlayerStop = false;
-        Cursor.lockState = CursorLockMode.Locked;   // 게임 시작 시, 마우스 커서 숨기기
-        Cursor.visible = false;
+
+        if (GameManager.Instance.IsUIOpen())
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
+
+        else
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+        }
     }
 
     public void NextPage()

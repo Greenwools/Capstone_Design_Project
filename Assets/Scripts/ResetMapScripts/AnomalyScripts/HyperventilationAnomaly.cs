@@ -57,7 +57,7 @@ public class HyperventilationAnomaly : MonoBehaviour, IAnomaly, IResetable
             _hasTriggered = true;
 
             PlayerSanity.Instance.StartPanicEffect(EffectDuration, HeadBobMultiplier, MaxLensDistortion,
-                MaxChromaticAberration, MaxVignetteIntensity);
+                MaxChromaticAberration, MaxVignetteIntensity, true);
 
             if (HeartBeatAudio != null) HeartBeatAudio.Play();
             _breathingCoroutine = StartCoroutine(PlayBreathingSounds());
