@@ -10,6 +10,7 @@ public class PlayerViewInteraction : MonoBehaviour
     private Camera _mainCamera;
     private Light _flashLight;
     private bool _CheckedLockedDoor = false;
+    private bool _isTutorialNoteRead = false;
 
     private AudioSource _audioSource;
     public AudioClip[] AudioClips;
@@ -24,10 +25,15 @@ public class PlayerViewInteraction : MonoBehaviour
     public Image FadeImage;
     public float FadeDuration = 1f;
 
-    public Item TutorialNoteItem;
     public GameObject StairBlockWall;
     public GameObject TutorialNote;
     public GameObject OnDeskObject;
+
+    public Item TutorialNoteItem;
+    public Item KeyItem;
+    public Item DiagnosisItem;
+    public Item WatchItem;
+    public Item MedicineItem;
 
     public ChapterCutScene Chapter1Cut;
     public ChapterCutScene Chapter2Cut;
@@ -40,6 +46,7 @@ public class PlayerViewInteraction : MonoBehaviour
         _mainCamera = GetComponent<Camera>();
         _flashLight = GetComponent<Light>();
         _audioSource = GetComponent<AudioSource>();
+        _isTutorialNoteRead = false;
 
         if (_audioSource == null )
         {
@@ -52,10 +59,8 @@ public class PlayerViewInteraction : MonoBehaviour
 
         if (GameManager.LoopCount <= 1)
         {
-            if (GameManager.LoopCount == 0)
-            {
-                if (OnDeskObject != null) OnDeskObject.SetActive(true);
-            }
+            if (GameManager.LoopCount == 0 && OnDeskObject != null) OnDeskObject.SetActive(true);
+
             if (GameManager.LoopCount == 1)
             {
                 GameManager.CanSprint = true;
@@ -83,6 +88,15 @@ public class PlayerViewInteraction : MonoBehaviour
     {
         if (GameManager.IsPlayerStop || GameManager.Instance.IsUIOpen()) return;
 
+        if (GameManager.LoopCount == 2 && !_isTutorialNoteRead)
+        {
+            if (NoteUI.Instance != null && !NoteUI.Instance.IsReading && InventoryManager.Instance.HasItem(TutorialNoteItem))
+            {
+                _isTutorialNoteRead = true;
+                StartCoroutine(GetTutorialNote());
+            }
+        }
+
         if (GameManager.LoopCount >= 2 && !GameManager.Instance.IsUIOpen() && Input.GetMouseButtonDown(1))
         {
             if (_flashLight != null)
@@ -103,7 +117,7 @@ public class PlayerViewInteraction : MonoBehaviour
         if (Physics.Raycast(ray, out hit, InteractionDistance, InteractionLayerMask))
         {
             if (Input.GetKeyDown(KeyCode.F)) 
-            { 
+            {
                 if (hit.collider.tag == "Backpack")
                 {
                     if (!GameManager.HasBackpack) StartCoroutine(BackpackPickupEvent(hit.collider.gameObject));
@@ -113,12 +127,7 @@ public class PlayerViewInteraction : MonoBehaviour
                 ItemPickup itemPickup = hit.collider.GetComponent<ItemPickup>();
                 if (itemPickup != null)
                 {
-                    if (itemPickup.item is NoteItem noteItem)
-                    {
-                        if (NoteUI.Instance != null) NoteUI.Instance.ShowNote(noteItem.pages);
-                    }
-
-                    itemPickup.Pickup();
+                    HandleItemPickup(itemPickup);
                     return;
                 }
 
@@ -127,7 +136,7 @@ public class PlayerViewInteraction : MonoBehaviour
                 { 
                     if (GameManager.LoopCount == 0 && !GameManager.HasBackpack)
                     {
-                        EventManager.Instance.ShowSubtitle("짐이랑 가방을 챙기고 돌아가야지. 그냥 갈 수는 없지..", 2f);
+                        EventManager.Instance.ShowSubtitle("짐이랑 가방을 챙기고 돌아가야지. 그냥 갈 수는 없어..", 2f);
                         return;
                     }
 
@@ -164,26 +173,37 @@ public class PlayerViewInteraction : MonoBehaviour
         }
     }
 
+    private void HandleItemPickup(ItemPickup pickup)
+    {
+        Item item = pickup.item;
+        if (item == TutorialNoteItem && NoteUI.Instance != null) NoteUI.Instance.ShowNote(((NoteItem)item).pages);
+
+        else if (item == KeyItem) EventManager.Instance.ShowSubtitle("이건 우리 집 열쇠잖아..? 이게 왜 여기에 있고 왜 녹슬어 있는 거지?", 4f);
+
+        else if (item == DiagnosisItem) EventManager.Instance.ShowSubtitle("이건.. 진단서인가? 내 이름이 적혀있어..", 4f);
+
+        else if (item == WatchItem) StartCoroutine(Chapter3PanicSequence());
+
+        pickup.Pickup();
+    }
+
     private void CheckChoice(string objName)
     {
         bool hasRequiredItems = InventoryManager.Instance.HasAllRequiredItemsForCurrentChapter();
 
-        if (hasRequiredItems)
+        if (hasRequiredItems && objName.Contains("LeftExit"))
         {
-            if (objName.Contains("LeftExit"))
-            {
-                TriggerStoryEvent();
-                return;
-            }
+            TriggerStoryEvent();
+            return;
         }
 
         if (!GameManager.IsAnomaly)
         {
-            if (objName.Contains("LeftExit"))
+            if (objName.Contains("LeftExit_Door"))
             {
                 _audioSource.pitch = 1.2f;
                 _audioSource.PlayOneShot(AudioClips[2]);
-                StartCoroutine(TeleportPlayer());
+                StartCoroutine(TeleportSequence(false, false));
             }
 
             else if (objName.Contains("Stairs"))
@@ -191,7 +211,7 @@ public class PlayerViewInteraction : MonoBehaviour
                 _audioSource.pitch = 1.45f;
                 _audioSource.PlayOneShot(AudioClips[3]);
                 DecreaseSanity();
-                StartCoroutine(TeleportPlayer());
+                StartCoroutine(TeleportSequence(false, false));
             }
         }
 
@@ -201,13 +221,13 @@ public class PlayerViewInteraction : MonoBehaviour
             {
                 _audioSource.pitch = 1.45f;
                 _audioSource.PlayOneShot(AudioClips[3]);
-                StartCoroutine(TeleportPlayer());
+                StartCoroutine(TeleportSequence(false, false));
             }
 
-            else if (objName.Contains("LeftExit"))
+            else if (objName.Contains("LeftExit_Door"))
             {
                 DecreaseSanity();
-                StartCoroutine(HorrorEventAndTeleport());
+                StartCoroutine(TeleportSequence(false, true));
             }
         }
     }
@@ -216,7 +236,7 @@ public class PlayerViewInteraction : MonoBehaviour
     {
         Debug.Log("필수 아이템 전부 입수 -> " + GameManager.CurrentChapter + "챕터 스토리 시작");
 
-        StartCoroutine(PlayStorySequence());
+        StartCoroutine(TeleportSequence(true, false));
     }
 
     private void DecreaseSanity()
@@ -225,11 +245,31 @@ public class PlayerViewInteraction : MonoBehaviour
         PlayerSanity.Instance.DecreaseSanity(20f);
     }
 
-    private IEnumerator TeleportPlayer()
+    private IEnumerator TeleportSequence(bool isStoryEvent, bool isHorror)
     {
-        GameManager.IsPlayerStop = true;        // 이동하는 동안 플레이어 정지
+        GameManager.IsPlayerStop = true;
 
         yield return StartCoroutine(EventManager.Instance.Fade(false, FadeDuration));
+
+        if (isStoryEvent)
+        {
+            if (GameManager.CurrentChapter == 1 && Chapter1Cut != null) yield return StartCoroutine(Chapter1Cut.PlayCutscene());
+            else if (GameManager.CurrentChapter == 2 && Chapter2Cut != null) yield return StartCoroutine(Chapter2Cut.PlayCutscene());
+            else if (GameManager.CurrentChapter == 3 && Chapter3Cut != null) yield return StartCoroutine(Chapter3Cut.PlayCutscene());
+            else if (GameManager.CurrentChapter >= 4)
+            {
+                EventManager.Instance.FadePanel.SetActive(true);
+                EventManager.Instance.ShowSubtitle("...그 이후 나는 무사히 건물 밖으로 나와 귀가할 수 있었고,\n다음 날 무사히 발표를 끝마쳤다.", 4f);
+                yield return new WaitForSeconds(4f);
+                EventManager.Instance.ShowSubtitle("꿈이라도 꿨던 것일까 싶으면서도 생생했던 기억은 \n시간이 꽤 흐른 지금도 어제 일처럼 선명하게 기억이 난다.", 4f);
+                yield return new WaitForSeconds(4f);
+
+                SceneManager.LoadScene(EndingScene);
+                yield break;
+            }
+
+            GameManager.Instance.NextChapeter();
+        }
 
         CharacterController cc = PlayerTransform.GetComponent<CharacterController>();
         cc.enabled = false;
@@ -237,27 +277,50 @@ public class PlayerViewInteraction : MonoBehaviour
         PlayerTransform.rotation = SpawnTransform.rotation;
         cc.enabled = true;
 
+        //if (CameraManager.Instance != null) CameraManager.Instance.SetXRotation(0f);
+
         GameManager.Instance.DecideNextLoopState();
+
+        if (GameManager.CurrentChapter == 3 && GameManager.Instance.IsMedicineUsed)
+        {
+            GameObject[] mainLights = GameObject.FindGameObjectsWithTag("MainLight");
+            foreach (GameObject light in mainLights) light.SetActive(true);
+            GameManager.IsAnomaly = false;
+            if (StairBlockWall != null) StairBlockWall.SetActive(true);
+
+            GameManager.CanSprint = false;
+        }
 
         if (GameManager.LoopCount == 2)
         {
             if (TutorialNote != null) TutorialNote.SetActive(true);
             if (StairBlockWall != null) StairBlockWall.SetActive(false);
-
             GameObject[] mainLights = GameObject.FindGameObjectsWithTag("MainLight");
             foreach (GameObject light in mainLights) light.SetActive(false);
-
             EventManager.Instance.UpdateObjective("");
         }
 
         yield return StartCoroutine(EventManager.Instance.Fade(true, FadeDuration));
 
-        if (GameManager.LoopCount == 1)
+        if (GameManager.CurrentChapter == 3 && GameManager.Instance.IsMedicineUsed)
+            StartCoroutine(Chapter3MonologueSequence());
+
+        else if (isStoryEvent && GameManager.CurrentChapter == 1)
+        {
+            EventManager.Instance.UpdateObjective("");
+            yield return new WaitForSeconds(1f);
+            EventManager.Instance.ShowSubtitle("...방금 그건 뭐였지?", 3f);
+            yield return new WaitForSeconds(1f);
+        }
+
+        else if (GameManager.LoopCount == 1)
         {
             EventManager.Instance.ShowSubtitle("...어라? 난 분명 문을 열고 밖으로 나왔는데", 3f);
             yield return new WaitForSeconds(3f);
             EventManager.Instance.ShowSubtitle("어째서 다시 건물 내부로 들어온 거지..?", 3f);
-            yield return new WaitForSeconds(1.5f);
+            yield return new WaitForSeconds(2f);
+            EventManager.Instance.ShowSubtitle("..뭔가 이상해, 얼른 나가야겠어.", 3f);
+            yield return new WaitForSeconds(1f);
 
             EventManager.Instance.UpdateObjective("들어온 문 확인하기");
         }
@@ -290,31 +353,11 @@ public class PlayerViewInteraction : MonoBehaviour
             yield return new WaitForSeconds(2f);
             EventManager.Instance.ShowNotification("마우스 우클릭을 통해 손전등을 On/Off 할 수 있습니다.", 2f);
 
-            yield return new WaitForSeconds(0.5f);
+            yield return new WaitForSeconds(1f);
         }
 
         GameManager.IsPlayerStop = false;
     }
-
-    private IEnumerator HorrorEventAndTeleport()
-    {
-        GameManager.IsPlayerStop = true;
-
-        yield return StartCoroutine(EventManager.Instance.Fade(false, FadeDuration));
-
-        CharacterController cc = PlayerTransform.GetComponent<CharacterController>();
-        cc.enabled = false;
-        PlayerTransform.position = SpawnTransform.position;
-        PlayerTransform.rotation = SpawnTransform.rotation;
-        cc.enabled = true;
-
-        GameManager.Instance.DecideNextLoopState();
-
-        yield return StartCoroutine(EventManager.Instance.Fade(true, FadeDuration));
-
-        GameManager.IsPlayerStop = false;
-    }
-
     private IEnumerator BackpackPickupEvent(GameObject backpack)
     {
         GameManager.IsPlayerStop = true;
@@ -329,43 +372,18 @@ public class PlayerViewInteraction : MonoBehaviour
         if (OnDeskObject != null) OnDeskObject.SetActive(false);
 
         yield return new WaitForSeconds(0.5f);
-
-        EventManager.Instance.UpdateObjective("왼쪽 출입구로 나가기");
         EventManager.Instance.ShowSubtitle("이제 건물 밖으로 나가자.", 3f);
+
+        yield return new WaitForSeconds(0.5f);
+        EventManager.Instance.UpdateObjective("왼쪽 출입구로 나가기");
 
         yield return StartCoroutine(EventManager.Instance.Fade(true, 1f));
 
-        yield return new WaitForSeconds(1.5f);
+        EventManager.Instance.ShowNotification("Tab 키를 눌러 가방(인벤토리)을 열 수 있습니다.", 2f);
 
-        EventManager.Instance.ShowNotification("Tab 키를 눌러 가방(인벤토리)을 열 수 있습니다.", 3f);
+        yield return new WaitForSeconds(2f);
 
         GameManager.IsPlayerStop = false;
-    }
-
-    private IEnumerator PlayStorySequence()
-    {
-        if (GameManager.CurrentChapter == 1 && Chapter1Cut != null) yield return StartCoroutine(Chapter1Cut.PlayCutscene());
-        else if (GameManager.CurrentChapter == 2 && Chapter2Cut != null) yield return StartCoroutine(Chapter2Cut.PlayCutscene());
-        else if (GameManager.CurrentChapter == 3 && Chapter3Cut != null) yield return StartCoroutine(Chapter3Cut.PlayCutscene());
-        else if (GameManager.CurrentChapter >= 4)
-        {
-            GameManager.IsPlayerStop = true;
-            yield return StartCoroutine(EventManager.Instance.Fade(false, 2f));
-
-            EventManager.Instance.FadePanel.SetActive(true);
-            EventManager.Instance.ShowSubtitle("...그 이후 나는 무사히 건물 밖으로 나와 귀가할 수 있었고,\n다음 날 무사히 발표를 끝마쳤다.", 4f);
-            yield return new WaitForSeconds(2f);
-            EventManager.Instance.ShowSubtitle("꿈이라도 꿨던 것일까 싶으면서도 생생했던 기억은 \n시간이 꽤 흐른 지금도 어제 일처럼 선명하게 기억이 난다.", 4f);
-            yield return new WaitForSeconds(2f);
-            EventManager.Instance.ShowSubtitle("", 4f);
-            yield return new WaitForSeconds(2f);
-
-            SceneManager.LoadScene(EndingScene);
-            yield break;
-        }
-
-        GameManager.Instance.NextChapeter();
-        StartCoroutine(TeleportPlayer());
     }
 
     private IEnumerator LockedDoorSequence()
@@ -387,5 +405,70 @@ public class PlayerViewInteraction : MonoBehaviour
 
         EventManager.Instance.ShowNotification("Left Shift를 누르면 달릴 수 있습니다.", 3f);
         EventManager.Instance.UpdateObjective("왼쪽 출입구로 다시 나가기");
+    }
+
+    private IEnumerator GetTutorialNote()
+    {
+        yield return new WaitForSeconds(0.5f);
+        EventManager.Instance.ShowSubtitle("이 노트... 쉽게 믿기 힘들지만..", 2f);
+        yield return new WaitForSeconds(2f);
+        EventManager.Instance.ShowSubtitle("지금 상황을 보면 어느 정도는 믿어야겠지.", 2f);
+        yield return new WaitForSeconds(2f);
+        EventManager.Instance.ShowSubtitle("우선 여기서 나가는 것만 생각하자.", 2f);
+
+        EventManager.Instance.UpdateObjective("이상 현상 찾기");
+        yield return new WaitForSeconds(2f);
+        EventManager.Instance.UpdateObjective("");
+    }
+
+    private IEnumerator Chapter3PanicSequence()
+    {
+        GameManager.IsPlayerStop = true;
+        EventManager.Instance.ShowSubtitle("이건 저번에 망가뜨려서 버린 내 시계잖아?", 3f);
+        yield return new WaitForSeconds(3f);
+
+        if (PlayerSanity.Instance != null) PlayerSanity.Instance.StartPanicEffect(999f, 3.0f, -0.5f, 1.0f, 0.7f, true);
+
+        EventManager.Instance.ShowSubtitle("윽.. 또 그 때처럼..", 3f);
+        yield return new WaitForSeconds(3f);
+        EventManager.Instance.ShowSubtitle("하아.. 수.. 숨이 안 쉬어져..", 3f);
+        yield return new WaitForSeconds(4f);
+
+        GameManager.IsPlayerStop = false;
+        EventManager.Instance.UpdateObjective("증상 진정시키기");
+
+        EventManager.Instance.ShowSubtitle("하아.. 하아.. 진정.. 진정해야 해..", 3f);
+        yield return new WaitForSeconds(3f);
+
+        EventManager.Instance.ShowSubtitle("아.. 가방에 분명..!", 3f);
+
+        // 약 아이템 지급 및 히든 슬롯 개방
+        if (InventoryUI.Instance != null) InventoryUI.Instance.UnlockHiddenTab();
+        InventoryManager.Instance.Add(MedicineItem);
+    }
+
+    private IEnumerator Chapter3MonologueSequence()
+    {
+        yield return new WaitForSeconds(2f);
+        EventManager.Instance.ShowSubtitle("불이... 다시 켜졌어.", 3f);
+        yield return new WaitForSeconds(3f);
+
+        EventManager.Instance.ShowSubtitle("...", 3f);
+        yield return new WaitForSeconds(3f);
+        EventManager.Instance.ShowSubtitle("그동안 난 내가 아프다는 걸 인정하기 싫어서 도망치고 있었던 거야.", 4f);
+        yield return new WaitForSeconds(4f);
+        EventManager.Instance.ShowSubtitle("주변 사람들에게 그렇게 보이기도 싫었고.", 3f);
+        yield return new WaitForSeconds(2f);
+        EventManager.Instance.ShowSubtitle("상담 이후에 제대로 치료를 받지 않아 나도 모르는 사이에 증상이 심해졌고", 4f);
+        yield return new WaitForSeconds(4f);
+        EventManager.Instance.ShowSubtitle("갑작스레 온 호흡 곤란에 넘어지면서 시계가 망가졌었지.", 3f);
+        yield return new WaitForSeconds(3f);
+        EventManager.Instance.ShowSubtitle("그 때부터 내 시간도 멈췄던 것 같아..", 3f);
+        yield return new WaitForSeconds(3f);
+
+        EventManager.Instance.ShowSubtitle("이제는 받아들여야 해. 그리고 치료받자. 다시 시작할 수 있어.", 5f);
+
+        GameManager.Instance.IsEndingReady = true;
+        EventManager.Instance.UpdateObjective("복도 끝 문으로 나가기");
     }
 }

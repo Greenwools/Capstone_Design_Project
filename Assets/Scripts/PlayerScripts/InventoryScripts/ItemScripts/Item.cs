@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum ItemType { Consumable, Miscellaneous, Important }
+public enum ItemType { Consumable, Miscellaneous, Important, Hidden }
 
 [CreateAssetMenu(fileName = "New Item", menuName = "Inventory/Item")]
 

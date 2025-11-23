@@ -5,19 +5,20 @@ using UnityEngine;
 public class ChapterCutScene : MonoBehaviour
 {
     [TextArea(3, 5)]
-    public string[] DialogueLines; // 대사 목록
-    public float[] DialogueDurations; // 각 대사별 출력 시간
-    public Transform TeleportLocation; // 플레이어가 이동할 회상 장소
+    public string[] DialogueLines;
+    public float[] DialogueDurations;
+    public Transform TeleportLocation;
 
-    public float DarkIntensity = 0.7f;
-    public float LookDownAngle = 30f;
+    public float DarkIntensity = 0.85f;
+    public float LookDownAngle = 40f;
 
     public IEnumerator PlayCutscene()
     {
         GameManager.IsPlayerStop = true;
 
-        // 1. 화면 암전 및 이동
         yield return StartCoroutine(EventManager.Instance.Fade(false, 1.5f));
+
+        if (CameraManager.Instance != null) CameraManager.Instance.SetXRotation(LookDownAngle);
 
         CharacterController cc = GameManager.Instance.GetPlayerTransform().GetComponent<CharacterController>();
         cc.enabled = false;
@@ -25,27 +26,21 @@ public class ChapterCutScene : MonoBehaviour
         GameManager.Instance.GetPlayerTransform().rotation = TeleportLocation.rotation;
         cc.enabled = true;
 
-        yield return StartCoroutine(EventManager.Instance.Fade(true, 1.5f));
-
-        if (CameraManager.Instance != null) CameraManager.Instance.SetXRotation(LookDownAngle); // 30도 아래로
-
         if (EventManager.Instance.FadePanel != null)
         {
-            UnityEngine.UI.Image fadeImg = EventManager.Instance.FadePanel.GetComponent<UnityEngine.UI.Image>();
-            fadeImg.color = new Color(0, 0, 0, DarkIntensity); // 0.7 정도의 어둠 유지
             EventManager.Instance.FadePanel.SetActive(true);
+            UnityEngine.UI.Image fadeImg = EventManager.Instance.FadePanel.GetComponent<UnityEngine.UI.Image>();
+            fadeImg.color = new Color(0, 0, 0, DarkIntensity);
         }
 
-        // 2. 대사 출력
         for (int i = 0; i < DialogueLines.Length; i++)
         {
             EventManager.Instance.ShowSubtitle(DialogueLines[i], DialogueDurations[i]);
-            yield return new WaitForSeconds(DialogueDurations[i] + 0.5f); // 대사 사이 간격
+            yield return new WaitForSeconds(DialogueDurations[i] + 0.5f);
         }
 
-        // 3. 복귀
         yield return StartCoroutine(EventManager.Instance.Fade(false, 1.5f));
 
-        // (PlayerViewInteraction에서 SpawnPoint로 복귀시킴)
+        if (CameraManager.Instance != null) CameraManager.Instance.SetXRotation(6.2f);
     }
 }

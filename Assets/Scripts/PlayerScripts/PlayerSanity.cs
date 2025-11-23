@@ -98,10 +98,10 @@ public class PlayerSanity : MonoBehaviour
         CheckSanityState();
     }
 
-    public void StartPanicEffect(float duration, float headbobMultiplier, float lensDistortion, float chromaticAberration, float vignette)
+    public void StartPanicEffect(float duration, float headbobMultiplier, float lensDistortion, float chromaticAberration, float vignette, bool isSustain = false)
     {
         if (_effectCoroutine != null) StopCoroutine(_effectCoroutine);
-        _effectCoroutine = StartCoroutine(PanicEffectSequence(duration, headbobMultiplier, lensDistortion, chromaticAberration, vignette));
+        _effectCoroutine = StartCoroutine(PanicEffectSequence(duration, headbobMultiplier, lensDistortion, chromaticAberration, vignette, isSustain));
     }
 
     public void ResetAllEffects()   // 다른 코드에서 호출용
@@ -182,18 +182,27 @@ public class PlayerSanity : MonoBehaviour
         }
     }
 
-    private IEnumerator PanicEffectSequence(float duration, float headbobMultiplier, float lensDistortion, float chromaticAberration, float vignette)
+    private IEnumerator PanicEffectSequence(float duration, float headbobMultiplier, float lensDistortion, float chromaticAberration, float vignette, bool isSustain)
     {
         _isPanicEffectRunning = true;
         GameManager.CanSprint = false;
 
-        ChromaticAberration _chromaticAberration;
-        PostProcessVolume.profile.TryGet(out _chromaticAberration);
-
         float timer = 0f;
+        float rampUpTime = 3.0f;
+
         while (timer < duration)
         {
-            float curve = Mathf.Sin(timer / duration * Mathf.PI);
+            float curve = 0f;
+
+            if (isSustain)
+            {
+                curve = Mathf.Clamp01(timer / rampUpTime);
+            }
+
+            else
+            {
+                curve = Mathf.Sin(timer / duration * Mathf.PI);
+            }
 
             _lensDistortion.intensity.value = lensDistortion * curve;
             if (_chromaticAberration != null) _chromaticAberration.intensity.value = chromaticAberration * curve;
