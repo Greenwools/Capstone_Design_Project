@@ -76,6 +76,16 @@ public class ItemSpawnManager : MonoBehaviour, IResetable
         SpawnConsumableItems();
     }
 
+    public bool IsEssentialItemSpawned()
+    {
+        foreach (var data in EssentialItems)
+        {
+            if (data.SpawnedInstance != null) return true;
+        }
+
+        return false;
+    }
+
     private void SpawnEssentialItems()
     {
         foreach (var data in EssentialItems)

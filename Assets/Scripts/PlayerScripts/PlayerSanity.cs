@@ -14,6 +14,7 @@ public class PlayerSanity : MonoBehaviour
     private Coroutine _wobbleCoroutine;
     private HeadBob _headBob;
     private Coroutine _effectCoroutine;
+    private Coroutine _restoreCoroutine;
 
     private bool _isLow = false;
     private bool _isPanicEffectRunning = false;
@@ -96,6 +97,16 @@ public class PlayerSanity : MonoBehaviour
         if (_currentSanity > MaxSanity) _currentSanity = MaxSanity;
         Debug.Log("정신력 회복. 현재 : " + _currentSanity);
         CheckSanityState();
+    }
+
+    public void RestoreSanityGradually(float amount, float duration)
+    {
+        if (_effectCoroutine != null) StopCoroutine(_effectCoroutine);
+        if (_wobbleCoroutine != null) StopCoroutine(_wobbleCoroutine);
+        _isPanicEffectRunning = false;
+
+        if (_restoreCoroutine != null) StopCoroutine(_restoreCoroutine);
+        _restoreCoroutine = StartCoroutine(RestoreSanityRoutine(amount, duration));
     }
 
     public void StartPanicEffect(float duration, float headbobMultiplier, float lensDistortion, float chromaticAberration, float vignette, bool isSustain = false)
@@ -182,40 +193,82 @@ public class PlayerSanity : MonoBehaviour
         }
     }
 
+    private IEnumerator RestoreSanityRoutine(float targetAmount, float duration)
+    {
+        float startSanity = _currentSanity;
+        float endSanity = Mathf.Min(_currentSanity + targetAmount, MaxSanity);
+        float timer = 0f;
+
+        float startVignette = (_vignette != null) ? _vignette.intensity.value : 0f;
+        float startLens = (_lensDistortion != null) ? _lensDistortion.intensity.value : 0f;
+        float startChromatic = (_chromaticAberration != null) ? _chromaticAberration.intensity.value : 0f;
+        float startWalkBob = (_headBob != null) ? _headBob.WalkHeadBobIntensity : _originalWalkIntensity;
+
+        while (timer < duration)
+        {
+            float t = timer / duration;
+
+            _currentSanity = Mathf.Lerp(startSanity, endSanity, t);
+
+            if (_vignette != null) _vignette.intensity.value = Mathf.Lerp(startVignette, 0f, t);
+            if (_lensDistortion != null) _lensDistortion.intensity.value = Mathf.Lerp(startLens, 0f, t);
+            if (_chromaticAberration != null) _chromaticAberration.intensity.value = Mathf.Lerp(startChromatic, 0f, t);
+            if (_headBob != null) _headBob.WalkHeadBobIntensity = Mathf.Lerp(startWalkBob, _originalWalkIntensity, t);
+
+            timer += Time.deltaTime;
+            yield return null;
+        }
+
+        _currentSanity = endSanity;
+        
+        ResetAllEffects();
+    }
+
     private IEnumerator PanicEffectSequence(float duration, float headbobMultiplier, float lensDistortion, float chromaticAberration, float vignette, bool isSustain)
     {
         _isPanicEffectRunning = true;
         GameManager.CanSprint = false;
 
         float timer = 0f;
-        float rampUpTime = 3.0f;
+        float rampUpTime = (isSustain) ? 3.0f : duration;
+        float wobbleSpeed = 10.0f;
+        float wobbleMagnitude = 0.3f;
+        float noiseOffset = Random.Range(0f, 100f);
 
         while (timer < duration)
         {
-            float curve = 0f;
+            float blendFactor = 0f;
 
             if (isSustain)
             {
-                curve = Mathf.Clamp01(timer / rampUpTime);
+                blendFactor = Mathf.Clamp01(timer / rampUpTime);
             }
 
             else
             {
-                curve = Mathf.Sin(timer / duration * Mathf.PI);
+                blendFactor = Mathf.Sin(timer / duration * Mathf.PI);
             }
 
-            _lensDistortion.intensity.value = lensDistortion * curve;
-            if (_chromaticAberration != null) _chromaticAberration.intensity.value = chromaticAberration * curve;
-            _vignette.intensity.value = vignette * curve;
+            float noiseVal = (Mathf.PerlinNoise(Time.time * wobbleSpeed, noiseOffset) * 2f) - 1f;
+            float rapidWobble = noiseVal * wobbleMagnitude;
+            float currentLens = Mathf.Lerp(0f, lensDistortion + rapidWobble, blendFactor);
 
-            _headBob.WalkHeadBobIntensity = _originalWalkIntensity + (_originalWalkIntensity * headbobMultiplier * curve);
+            _lensDistortion.intensity.value = currentLens;
+
+            if (_chromaticAberration != null) _chromaticAberration.intensity.value = Mathf.Lerp(0f, chromaticAberration, blendFactor);
+            _vignette.intensity.value = Mathf.Lerp(0f, vignette, blendFactor);
+
+            _headBob.WalkHeadBobIntensity = _originalWalkIntensity + (_originalWalkIntensity * headbobMultiplier * blendFactor);
 
             timer += Time.deltaTime;
             yield return null;
         }
 
-        _isPanicEffectRunning = false;
-        CheckSanityState();
+        if (!isSustain)
+        {
+            _isPanicEffectRunning = false;
+            CheckSanityState();
+        }
     }
 
     private IEnumerator WobbleEffect()

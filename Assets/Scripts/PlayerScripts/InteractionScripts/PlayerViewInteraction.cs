@@ -9,8 +9,11 @@ public class PlayerViewInteraction : MonoBehaviour
 {
     private Camera _mainCamera;
     private Light _flashLight;
+    private GameObject[] _mainLights;
     private bool _CheckedLockedDoor = false;
     private bool _isTutorialNoteRead = false;
+    private bool _isEndingPhase = false;
+    private Image Crosshair;
 
     private AudioSource _audioSource;
     public AudioClip[] AudioClips;
@@ -21,10 +24,12 @@ public class PlayerViewInteraction : MonoBehaviour
 
     public Transform PlayerTransform;
     public Transform SpawnTransform;
+    public Transform EndingSpawnPoint;
 
     public Image FadeImage;
     public float FadeDuration = 1f;
 
+    public GameObject CrosshairPannel;
     public GameObject StairBlockWall;
     public GameObject TutorialNote;
     public GameObject OnDeskObject;
@@ -37,8 +42,8 @@ public class PlayerViewInteraction : MonoBehaviour
 
     public ChapterCutScene Chapter1Cut;
     public ChapterCutScene Chapter2Cut;
-    public ChapterCutScene Chapter3Cut;
     public string EndingScene = "EndingScene";
+    public Text EndingText;
 
     // Start is called before the first frame update
     void Start()
@@ -46,7 +51,9 @@ public class PlayerViewInteraction : MonoBehaviour
         _mainCamera = GetComponent<Camera>();
         _flashLight = GetComponent<Light>();
         _audioSource = GetComponent<AudioSource>();
+        Crosshair = CrosshairPannel.GetComponent<Image>();
         _isTutorialNoteRead = false;
+        _mainLights = GameObject.FindGameObjectsWithTag("MainLight");
 
         if (_audioSource == null )
         {
@@ -118,6 +125,9 @@ public class PlayerViewInteraction : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.F)) 
             {
+                if (GameManager.CurrentChapter == 4 && GameManager.Instance.IsMedicineUsed && !GameManager.Instance.IsEndingReady)
+                    return;
+
                 if (hit.collider.tag == "Backpack")
                 {
                     if (!GameManager.HasBackpack) StartCoroutine(BackpackPickupEvent(hit.collider.gameObject));
@@ -155,6 +165,12 @@ public class PlayerViewInteraction : MonoBehaviour
                 {
                     string objectName = hit.collider.name;
 
+                    if (_isEndingPhase)
+                    {
+                        StartCoroutine(GoToEndingScene());
+                        return;
+                    }
+
                     if (GameManager.LoopCount == 1 && !_CheckedLockedDoor && objectName.Contains("RightExit"))
                     {
                         StartCoroutine(LockedDoorSequence());
@@ -178,7 +194,7 @@ public class PlayerViewInteraction : MonoBehaviour
         Item item = pickup.item;
         if (item == TutorialNoteItem && NoteUI.Instance != null) NoteUI.Instance.ShowNote(((NoteItem)item).pages);
 
-        else if (item == KeyItem) EventManager.Instance.ShowSubtitle("이건 우리 집 열쇠잖아..? 이게 왜 여기에 있고 왜 녹슬어 있는 거지?", 4f);
+        else if (item == KeyItem) EventManager.Instance.ShowSubtitle("이건 우리 집 열쇠잖아..? 이게 왜 여기에 있고 왜 이리 녹슬어 있는 거지?", 4f);
 
         else if (item == DiagnosisItem) EventManager.Instance.ShowSubtitle("이건.. 진단서인가? 내 이름이 적혀있어..", 4f);
 
@@ -189,6 +205,12 @@ public class PlayerViewInteraction : MonoBehaviour
 
     private void CheckChoice(string objName)
     {
+        if (GameManager.Instance.IsEndingReady && (objName.Contains("LeftExit"))) 
+        {
+            StartCoroutine(GoToEndingSequence());
+            return;
+        }
+
         bool hasRequiredItems = InventoryManager.Instance.HasAllRequiredItemsForCurrentChapter();
 
         if (hasRequiredItems && objName.Contains("LeftExit"))
@@ -249,24 +271,17 @@ public class PlayerViewInteraction : MonoBehaviour
     {
         GameManager.IsPlayerStop = true;
 
+        if (isStoryEvent || (GameManager.CurrentChapter == 3 && GameManager.Instance.IsMedicineUsed))
+        {
+            if (_flashLight != null) _flashLight.enabled = false;
+        }
+
         yield return StartCoroutine(EventManager.Instance.Fade(false, FadeDuration));
 
         if (isStoryEvent)
         {
             if (GameManager.CurrentChapter == 1 && Chapter1Cut != null) yield return StartCoroutine(Chapter1Cut.PlayCutscene());
             else if (GameManager.CurrentChapter == 2 && Chapter2Cut != null) yield return StartCoroutine(Chapter2Cut.PlayCutscene());
-            else if (GameManager.CurrentChapter == 3 && Chapter3Cut != null) yield return StartCoroutine(Chapter3Cut.PlayCutscene());
-            else if (GameManager.CurrentChapter >= 4)
-            {
-                EventManager.Instance.FadePanel.SetActive(true);
-                EventManager.Instance.ShowSubtitle("...그 이후 나는 무사히 건물 밖으로 나와 귀가할 수 있었고,\n다음 날 무사히 발표를 끝마쳤다.", 4f);
-                yield return new WaitForSeconds(4f);
-                EventManager.Instance.ShowSubtitle("꿈이라도 꿨던 것일까 싶으면서도 생생했던 기억은 \n시간이 꽤 흐른 지금도 어제 일처럼 선명하게 기억이 난다.", 4f);
-                yield return new WaitForSeconds(4f);
-
-                SceneManager.LoadScene(EndingScene);
-                yield break;
-            }
 
             GameManager.Instance.NextChapeter();
         }
@@ -281,36 +296,59 @@ public class PlayerViewInteraction : MonoBehaviour
 
         GameManager.Instance.DecideNextLoopState();
 
-        if (GameManager.CurrentChapter == 3 && GameManager.Instance.IsMedicineUsed)
+        bool isMedicineRoute = (GameManager.CurrentChapter == 4 && GameManager.Instance.IsMedicineUsed);
+        
+        if (isMedicineRoute)
         {
-            GameObject[] mainLights = GameObject.FindGameObjectsWithTag("MainLight");
-            foreach (GameObject light in mainLights) light.SetActive(true);
+            foreach (GameObject light in _mainLights) light.SetActive(true);
             GameManager.IsAnomaly = false;
             if (StairBlockWall != null) StairBlockWall.SetActive(true);
 
             GameManager.CanSprint = false;
         }
 
-        if (GameManager.LoopCount == 2)
+        else if (GameManager.LoopCount == 2)
         {
             if (TutorialNote != null) TutorialNote.SetActive(true);
             if (StairBlockWall != null) StairBlockWall.SetActive(false);
-            GameObject[] mainLights = GameObject.FindGameObjectsWithTag("MainLight");
-            foreach (GameObject light in mainLights) light.SetActive(false);
+            foreach (GameObject light in _mainLights) light.SetActive(false);
             EventManager.Instance.UpdateObjective("");
         }
 
         yield return StartCoroutine(EventManager.Instance.Fade(true, FadeDuration));
 
-        if (GameManager.CurrentChapter == 3 && GameManager.Instance.IsMedicineUsed)
-            StartCoroutine(Chapter3MonologueSequence());
+        if (isMedicineRoute) StartCoroutine(Chapter3MonologueSequence());
 
-        else if (isStoryEvent && GameManager.CurrentChapter == 1)
+        else if (isStoryEvent)
         {
+            yield return new WaitForSeconds(1f);
             EventManager.Instance.UpdateObjective("");
-            yield return new WaitForSeconds(1f);
-            EventManager.Instance.ShowSubtitle("...방금 그건 뭐였지?", 3f);
-            yield return new WaitForSeconds(1f);
+
+            if (GameManager.CurrentChapter == 2)
+            {
+                GameManager.IsPlayerStop = true;
+                EventManager.Instance.ShowSubtitle("...방금 그건 뭐였지?", 3f);
+                yield return new WaitForSeconds(2f);
+                EventManager.Instance.ShowSubtitle("이 공간이 내 과거를 보여준 건가?", 3f);
+                yield return new WaitForSeconds(3f);
+                EventManager.Instance.ShowSubtitle(".....", 2f);
+                yield return new WaitForSeconds(2f);
+                GameManager.IsPlayerStop = false;
+            }
+
+            else if (GameManager.CurrentChapter == 3)
+            {
+                GameManager.IsPlayerStop = true;
+                EventManager.Instance.ShowSubtitle("이번에는 대학에 입학하고 얼마 지나지 않아서 상담을 받았었던 때인가?", 4f);
+                yield return new WaitForSeconds(3f);
+                EventManager.Instance.ShowSubtitle(".....", 2f);
+                yield return new WaitForSeconds(2f);
+                EventManager.Instance.ShowSubtitle("..그 때 제대로 치료를 받았다면 지금과 달랐을까..?", 3f);
+                yield return new WaitForSeconds(3f);
+                GameManager.IsPlayerStop = false;
+            }
+
+            EventManager.Instance.ShowSubtitle("...일단은 계속 나아가 보자.", 3f);
         }
 
         else if (GameManager.LoopCount == 1)
@@ -318,9 +356,9 @@ public class PlayerViewInteraction : MonoBehaviour
             EventManager.Instance.ShowSubtitle("...어라? 난 분명 문을 열고 밖으로 나왔는데", 3f);
             yield return new WaitForSeconds(3f);
             EventManager.Instance.ShowSubtitle("어째서 다시 건물 내부로 들어온 거지..?", 3f);
-            yield return new WaitForSeconds(2f);
+            yield return new WaitForSeconds(3f);
             EventManager.Instance.ShowSubtitle("..뭔가 이상해, 얼른 나가야겠어.", 3f);
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSeconds(2f);
 
             EventManager.Instance.UpdateObjective("들어온 문 확인하기");
         }
@@ -438,7 +476,7 @@ public class PlayerViewInteraction : MonoBehaviour
         EventManager.Instance.UpdateObjective("증상 진정시키기");
 
         EventManager.Instance.ShowSubtitle("하아.. 하아.. 진정.. 진정해야 해..", 3f);
-        yield return new WaitForSeconds(3f);
+        yield return new WaitForSeconds(6f);
 
         EventManager.Instance.ShowSubtitle("아.. 가방에 분명..!", 3f);
 
@@ -451,6 +489,8 @@ public class PlayerViewInteraction : MonoBehaviour
     {
         yield return new WaitForSeconds(2f);
         EventManager.Instance.ShowSubtitle("불이... 다시 켜졌어.", 3f);
+        yield return new WaitForSeconds(3f);
+        EventManager.Instance.ShowSubtitle("원래대로 돌아온 건가..?", 3f);
         yield return new WaitForSeconds(3f);
 
         EventManager.Instance.ShowSubtitle("...", 3f);
@@ -470,5 +510,87 @@ public class PlayerViewInteraction : MonoBehaviour
 
         GameManager.Instance.IsEndingReady = true;
         EventManager.Instance.UpdateObjective("복도 끝 문으로 나가기");
+    }
+
+    private IEnumerator GoToEndingSequence()
+    {
+        GameManager.IsPlayerStop = true;
+        EventManager.Instance.UpdateObjective("");
+        CrosshairPannel.SetActive(false);
+
+        yield return StartCoroutine(EventManager.Instance.Fade(false, 2.0f));
+
+        if (EventManager.Instance.FadePanel != null)
+            EventManager.Instance.FadePanel.GetComponent<Image>().color = Color.black;
+
+        EventManager.Instance.FadePanel.SetActive(true);
+
+        EndingText.text = "...문을 열자 드디어 나는 건물 밖으로 나와 무사히 귀가할 수 있었다.";
+        EndingText.gameObject.SetActive(true);
+        yield return new WaitForSeconds(4f);
+
+        EndingText.text = "서둘러 집으로 돌아온 곧바로 내가 겪었던 일에 대해 찾아보았다.";
+        yield return new WaitForSeconds(4f);
+        EndingText.text = "한 때 떠올랐던 도시 괴담에 대한 내용은 많이 있지 않았지만, 알게된 것도 있었다.";
+        yield return new WaitForSeconds(4f);
+        EndingText.text = "그곳에서 탈출하기 위해 필요했던 것은 다름이 아니라 투영된 현상에 대한 [수용]이었다는 것이다.";
+        yield return new WaitForSeconds(4f);
+        EndingText.text = "나는 그 공간을 몇 번이고 반복해 돌아다니며 스스로 받아들이지 못하고 외면하고 있던 것을 받아들였고,\n그로 인해 탈출할 수 있게 된 것이었다.";
+        yield return new WaitForSeconds(5f);
+        EndingText.text = "그 이후로 시간이 흘러 프로젝트 발표를 하는 날이 왔다.";
+        yield return new WaitForSeconds(3f);
+        EndingText.text = "걱정했던 것과 달리 발표는 순조롭게 진행했으며 마음 한켠으로 홀가분한 마음이 들었다.";
+        yield return new WaitForSeconds(4f);
+        EndingText.text = "그리고 나는 언젠가 그 공간에서 다짐했던 것을 실행하기 위해 발걸음을 옮겼다.";
+        yield return new WaitForSeconds(3f);
+        EndingText.gameObject.SetActive(false);
+
+        CharacterController cc = PlayerTransform.GetComponent<CharacterController>();
+        cc.enabled = false;
+        PlayerTransform.position = EndingSpawnPoint.position;
+        PlayerTransform.rotation = EndingSpawnPoint.rotation;
+        cc.enabled = true;
+        if (CameraManager.Instance != null) CameraManager.Instance.SetXRotation(0f);
+
+        _isEndingPhase = true;
+        GameManager.IsAnomaly = false;
+        GameManager.CanSprint = false;
+        CrosshairPannel.SetActive(true);
+
+        yield return StartCoroutine(EventManager.Instance.Fade(true, 2.0f));
+
+        EventManager.Instance.ShowSubtitle("후우.. 괜찮아. 별 것 아니잖아.", 3f);
+        yield return new WaitForSeconds(3f);
+        EventManager.Instance.ShowSubtitle("자, 들아가자.", 3f);
+        yield return new WaitForSeconds(3f);
+        EventManager.Instance.UpdateObjective("문 열고 들어가기");
+
+        GameManager.IsPlayerStop = false;
+    }
+
+    private IEnumerator GoToEndingScene()
+    {
+        GameManager.IsPlayerStop = true;
+
+        Image fadeImg = EventManager.Instance.FadePanel.GetComponent<Image>();
+        fadeImg.color = new Color(1, 1, 1, 0);
+
+        EventManager.Instance.FadePanel.SetActive(true);
+        float timer = 0f;
+        float duration = 3f;
+        while (timer < duration)
+        {
+            float alpha = Mathf.Lerp(0f, 1f, timer / duration);
+            fadeImg.color = new Color(1, 1, 1, alpha);
+            timer += Time.deltaTime;
+            yield return null;
+        }
+        fadeImg.color = Color.white;
+
+        EventManager.Instance.SubtitleText.color = Color.black;
+        EventManager.Instance.ShowSubtitle("괜찮아. 다 잘 될 거야.", 4f);
+        yield return new WaitForSeconds(4f);
+
+        SceneManager.LoadScene(EndingScene);
     }
 }
