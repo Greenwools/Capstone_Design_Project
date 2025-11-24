@@ -219,6 +219,8 @@ public class GameManager : MonoBehaviour
 
         if (LoopCount == 1) CanSprint = true;
 
+        if (_itemSpawnManager != null) _itemSpawnManager.SpawnItem();
+
         if (LoopCount < 2)
         {
             IsAnomaly = false;
@@ -236,8 +238,6 @@ public class GameManager : MonoBehaviour
         else _normalLoopCount++;
 
         if (IsAnomaly && _anomalyManager != null) _anomalyManager.TriggerRandomAnomaly();
-
-        if (_itemSpawnManager != null) _itemSpawnManager.SpawnItem();
 
         SaveGameData();
     }

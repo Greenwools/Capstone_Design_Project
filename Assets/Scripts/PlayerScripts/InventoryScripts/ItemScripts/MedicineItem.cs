@@ -11,12 +11,12 @@ public class MedicineItem : Item
 
         if (PlayerSanity.Instance != null )
         {
-            PlayerSanity.Instance.RestoreSanity(100f);
-            PlayerSanity.Instance.ResetAllEffects();
+            PlayerSanity.Instance.RestoreSanityGradually(100f, 5.0f);
         }
 
         if (GameManager.Instance != null) GameManager.Instance.IsMedicineUsed = true;
 
         if (EventManager.Instance != null) EventManager.Instance.ShowSubtitle("...조금씩 진정되는 것 같아.", 3f);
+        EventManager.Instance.UpdateObjective("");
     }
 }

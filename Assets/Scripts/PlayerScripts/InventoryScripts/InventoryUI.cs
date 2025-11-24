@@ -49,7 +49,7 @@ public class InventoryUI : MonoBehaviour
     private void OnEnable()
     {
         UpdateUI();
-        ShowNormalItems();
+        //ShowNormalItems();
     }
 
     void CreateSlots(int count, Transform parent, List<InventorySlot> slotList)
@@ -95,7 +95,7 @@ public class InventoryUI : MonoBehaviour
                 }
             }
 
-            if (item.IsImportant)
+            else if (item.IsImportant)
             {
                 if (currentimportantSlot < _importantSlots.Count)
                 {

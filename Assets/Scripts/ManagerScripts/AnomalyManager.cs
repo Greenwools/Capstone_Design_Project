@@ -32,7 +32,10 @@ public class AnomalyManager : MonoBehaviour
         List<GameObject> currentPool = new List<GameObject>();
         currentPool.AddRange(SmallAnomalyList);
 
-        if (GameManager.CurrentChapter >= 2) currentPool.AddRange(MainAnomalyList);
+        bool isItemSpawned = false;
+        if (ItemSpawnManager.Instance != null) isItemSpawned = ItemSpawnManager.Instance.IsEssentialItemSpawned();
+
+        if (GameManager.CurrentChapter >= 2 && !isItemSpawned) currentPool.AddRange(MainAnomalyList);
 
         if (_lastTriggeredAnomaly != null && currentPool.Contains(_lastTriggeredAnomaly))
         {
