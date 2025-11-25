@@ -53,6 +53,11 @@ public class AnomalyManager : MonoBehaviour
             {
                 anomalyScript.TriggerAnomaly();
                 _lastTriggeredAnomaly = selectedAnomaly;
+
+                if (GameManager.Instance != null)
+                {
+                    GameManager.Instance.RegisterAnomaly(selectedAnomaly.name);
+                }
             }
         }
     }

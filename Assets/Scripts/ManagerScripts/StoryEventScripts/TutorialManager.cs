@@ -36,7 +36,11 @@ public class TutorialManager : MonoBehaviour
         _eventManager.FadePanel.SetActive(true);
         _eventManager.FadePanel.GetComponent<Image>().color = Color.black;
 
-        IntroText.text = "중요한 프로젝트를 앞두고 늦은 시각까지 빈 강의실에 남아 발표 준비를 끝마쳤다.\n이제 짐을 챙기고 집으로 돌아가자.";
+        IntroText.text =
+            "중요한 프로젝트를 앞두고 늦은 시각까지 빈 강의실에 남아 발표 준비를 끝마쳤다.\n\n" +
+            "열심히 준비했지만... 가슴이 답답해져 온다.\n\n" +
+            "어서 짐을 챙기고 집으로 돌아가자.";
+
         IntroText.gameObject.SetActive(true);
         yield return new WaitForSeconds(IntroDuration);
 

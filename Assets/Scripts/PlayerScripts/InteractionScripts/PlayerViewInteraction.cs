@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using Unity.VisualScripting;
+using UnityEngine.Rendering.UI;
 
 public class PlayerViewInteraction : MonoBehaviour
 {
@@ -32,6 +33,7 @@ public class PlayerViewInteraction : MonoBehaviour
     public GameObject CrosshairPannel;
     public GameObject StairBlockWall;
     public GameObject TutorialNote;
+    public GameObject SecondNote;
     public GameObject OnDeskObject;
     public GameObject DirectionalLight;
 
@@ -78,6 +80,7 @@ public class PlayerViewInteraction : MonoBehaviour
             }
             if (StairBlockWall != null) StairBlockWall.SetActive(true);
             if (TutorialNote != null) TutorialNote.SetActive(false);
+            if (SecondNote != null) SecondNote.SetActive(false);
         }
 
         else
@@ -329,10 +332,11 @@ public class PlayerViewInteraction : MonoBehaviour
 
             if (GameManager.CurrentChapter == 2)
             {
+                if (SecondNote != null) SecondNote.SetActive(true);
                 GameManager.IsPlayerStop = true;
-                EventManager.Instance.ShowSubtitle("...방금 그건 뭐였지?", 3f);
+                EventManager.Instance.ShowSubtitle("... 방금 그건...", 2f);
                 yield return new WaitForSeconds(2f);
-                EventManager.Instance.ShowSubtitle("이 공간이 내 과거를 보여준 건가?", 3f);
+                EventManager.Instance.ShowSubtitle("잊은 줄 알았는데... 왜 갑자기 이런 걸 보여주는 거지?", 3f);
                 yield return new WaitForSeconds(3f);
                 EventManager.Instance.ShowSubtitle(".....", 2f);
                 yield return new WaitForSeconds(2f);
@@ -342,16 +346,18 @@ public class PlayerViewInteraction : MonoBehaviour
             else if (GameManager.CurrentChapter == 3)
             {
                 GameManager.IsPlayerStop = true;
-                EventManager.Instance.ShowSubtitle("이번에는 대학에 입학하고 얼마 지나지 않아서 상담을 받았었던 때인가?", 4f);
+                EventManager.Instance.ShowSubtitle("...그날 받아온 약, 뜯지도 않고 가방 안에 넣어놨었지.", 3f);
+                yield return new WaitForSeconds(3f);
+                EventManager.Instance.ShowSubtitle("난 환자가 아니라고 생각했으니까..", 3f);
                 yield return new WaitForSeconds(3f);
                 EventManager.Instance.ShowSubtitle(".....", 2f);
                 yield return new WaitForSeconds(2f);
-                EventManager.Instance.ShowSubtitle("..그 때 제대로 치료를 받았다면 지금과 달랐을까..?", 3f);
+                EventManager.Instance.ShowSubtitle("그때 솔직하게 인정하고 치료받았다면... 지금과 달라졌을까?", 3f);
                 yield return new WaitForSeconds(3f);
                 GameManager.IsPlayerStop = false;
             }
 
-            EventManager.Instance.ShowSubtitle("...일단은 계속 나아가 보자.", 3f);
+            EventManager.Instance.ShowSubtitle("...일단은 계속 나아가 보자.", 2f);
         }
 
         else if (GameManager.LoopCount == 1)
@@ -373,6 +379,9 @@ public class PlayerViewInteraction : MonoBehaviour
             EventManager.Instance.ShowSubtitle("..또 건물로 들어와진 거야?", 2f);
             yield return new WaitForSeconds(2f);
 
+            EventManager.Instance.ShowSubtitle("대체 뭐가 어떻게 되어가고 있는 거지?", 2f);
+            yield return new WaitForSeconds(2f);
+
             EventManager.Instance.ShowSubtitle("게다가 이번에는 불도 전부 꺼져 있어서 아무것도 안 보이잖아..", 3f);
             yield return new WaitForSeconds(3f);
 
@@ -386,7 +395,7 @@ public class PlayerViewInteraction : MonoBehaviour
                 _audioSource.PlayOneShot(AudioClips[0]);
             }
 
-            yield return new WaitForSeconds(1.5f);
+            yield return new WaitForSeconds(1f);
 
             EventManager.Instance.ShowSubtitle("..잠깐, 저기 바닥에 뭔가 떨어져 있는데 뭐지?", 2f);
             EventManager.Instance.UpdateObjective("바닥에 떨어진 노트 확인하기");
@@ -465,23 +474,30 @@ public class PlayerViewInteraction : MonoBehaviour
     private IEnumerator Chapter3PanicSequence()
     {
         GameManager.IsPlayerStop = true;
-        EventManager.Instance.ShowSubtitle("이건 저번에 망가뜨려서 버린 내 시계잖아?", 3f);
+        EventManager.Instance.ShowSubtitle("이 시계... 분명 그 날, 내가 넘어지면서...", 3f);
         yield return new WaitForSeconds(3f);
 
         if (PlayerSanity.Instance != null) PlayerSanity.Instance.StartPanicEffect(999f, 3.0f, -0.5f, 1.0f, 0.7f, true);
 
-        EventManager.Instance.ShowSubtitle("윽.. 또 그 때처럼..", 3f);
-        yield return new WaitForSeconds(3f);
-        EventManager.Instance.ShowSubtitle("하아.. 수.. 숨이 안 쉬어져..", 3f);
-        yield return new WaitForSeconds(4f);
+        EventManager.Instance.ShowSubtitle("윽.. 또 그 때처럼..", 2f);
+        yield return new WaitForSeconds(2f);
 
         GameManager.IsPlayerStop = false;
+
+        EventManager.Instance.ShowSubtitle("허억... 헉... 수, 숨이... 안 쉬어져...", 3f);
+        yield return new WaitForSeconds(3f);
+        EventManager.Instance.ShowSubtitle("가슴이... 터질 것 같아... 누가 좀...", 3f);
+        yield return new WaitForSeconds(4f);
+
         EventManager.Instance.UpdateObjective("증상 진정시키기");
 
         EventManager.Instance.ShowSubtitle("하아.. 하아.. 진정.. 진정해야 해..", 3f);
-        yield return new WaitForSeconds(6f);
+        yield return new WaitForSeconds(3f);
 
-        EventManager.Instance.ShowSubtitle("아.. 가방에 분명..!", 3f);
+        EventManager.Instance.ShowSubtitle("아... 맞다... 가방... 가방 안에...", 3f);
+        yield return new WaitForSeconds(3f);
+
+        EventManager.Instance.ShowSubtitle("그때 받았던... 제발 있어라...!", 2f);
 
         // 약 아이템 지급 및 히든 슬롯 개방
         if (InventoryUI.Instance != null) InventoryUI.Instance.UnlockHiddenTab();
@@ -491,25 +507,22 @@ public class PlayerViewInteraction : MonoBehaviour
     private IEnumerator Chapter3MonologueSequence()
     {
         yield return new WaitForSeconds(2f);
-        EventManager.Instance.ShowSubtitle("불이... 다시 켜졌어.", 3f);
+        EventManager.Instance.ShowSubtitle("어두웠던 복도에... 불이 다시 켜졌어.", 3f);
         yield return new WaitForSeconds(3f);
         EventManager.Instance.ShowSubtitle("원래대로 돌아온 건가..?", 3f);
         yield return new WaitForSeconds(3f);
 
-        EventManager.Instance.ShowSubtitle("...", 3f);
-        yield return new WaitForSeconds(3f);
-        EventManager.Instance.ShowSubtitle("그동안 난 내가 아프다는 걸 인정하기 싫어서 도망치고 있었던 거야.", 4f);
-        yield return new WaitForSeconds(4f);
-        EventManager.Instance.ShowSubtitle("주변 사람들에게 그렇게 보이기도 싫었고.", 3f);
+        EventManager.Instance.ShowSubtitle("...", 2f);
         yield return new WaitForSeconds(2f);
-        EventManager.Instance.ShowSubtitle("상담 이후에 제대로 치료를 받지 않아 나도 모르는 사이에 증상이 심해졌고", 4f);
+        EventManager.Instance.ShowSubtitle("사실은 알고 있었어. 내가 아프다는 건..", 3f);
+        yield return new WaitForSeconds(3f);
+        EventManager.Instance.ShowSubtitle("아프다는 걸 인정하면... 남들에게 뒤처질까 봐, 약해 보일까 봐... 시선을 돌렸었어.", 4f);
         yield return new WaitForSeconds(4f);
-        EventManager.Instance.ShowSubtitle("갑작스레 온 호흡 곤란에 넘어지면서 시계가 망가졌었지.", 3f);
+        EventManager.Instance.ShowSubtitle("그렇게 미련하게 도망치다 보니, 내 시간은 그 망가진 시계처럼 멈춰버렸던 거야.", 3f);
         yield return new WaitForSeconds(3f);
-        EventManager.Instance.ShowSubtitle("그 때부터 내 시간도 멈췄던 것 같아..", 3f);
+        EventManager.Instance.ShowSubtitle("이제는 받아들여야 해. 나는 도움이 필요한 상태였어.", 3f);
         yield return new WaitForSeconds(3f);
-
-        EventManager.Instance.ShowSubtitle("이제는 받아들여야 해. 그리고 치료받자. 다시 시작할 수 있어.", 5f);
+        EventManager.Instance.ShowSubtitle("하지만 치료받고 노력하면... 다시 멈춘 시간을 움직일 수 있을거야.", 3f);
 
         GameManager.Instance.IsEndingReady = true;
         EventManager.Instance.UpdateObjective("복도 끝 문으로 나가기");
@@ -528,7 +541,7 @@ public class PlayerViewInteraction : MonoBehaviour
 
         EventManager.Instance.FadePanel.SetActive(true);
 
-        EndingText.text = "...문을 열자 드디어 나는 건물 밖으로 나와 무사히 귀가할 수 있었다.";
+        EndingText.text = "...문을 열자, 차가운 밤공기가 느껴졌다. 드디어 건물 밖으로 나온 것이다.";
         EndingText.gameObject.SetActive(true);
         yield return new WaitForSeconds(4f);
 
@@ -536,9 +549,9 @@ public class PlayerViewInteraction : MonoBehaviour
         yield return new WaitForSeconds(4f);
         EndingText.text = "한 때 떠올랐던 도시 괴담에 대한 내용은 많이 있지 않았지만, 알게된 것도 있었다.";
         yield return new WaitForSeconds(4f);
-        EndingText.text = "그곳에서 탈출하기 위해 필요했던 것은 다름이 아니라 투영된 현상에 대한 [수용]이었다는 것이다.";
+        EndingText.text = "도시 괴담 따위가 아니었다. 그곳은 내 불안이 만들어낸 세계였다. \n\n탈출구는 도망치는 것이 아니라, 그 불안을 있는 그대로 '인정'하는 데 있었다.";
         yield return new WaitForSeconds(4f);
-        EndingText.text = "나는 그 공간을 몇 번이고 반복해 돌아다니며 스스로 받아들이지 못하고 외면하고 있던 것을 받아들였고,\n그로 인해 탈출할 수 있게 된 것이었다.";
+        EndingText.text = "나는 몇 번이고 같은 자리를 맴돌며, 애써 외면했던 나 자신의 아픔을 마주 보았다. \n\n내가 나를 받아들였을 때, 비로소 시간은 다시 흐르기 시작했다.";
         yield return new WaitForSeconds(5f);
         EndingText.text = "그 이후로 시간이 흘러 프로젝트 발표를 하는 날이 왔다.";
         yield return new WaitForSeconds(3f);

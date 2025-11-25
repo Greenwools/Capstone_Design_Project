@@ -23,6 +23,7 @@ public class GameManager : MonoBehaviour
 
     [SerializeField] private GameObject _menuUI;
     [SerializeField] private GameObject _inventoryUI;
+    [SerializeField] private EventManager _eventManager;
     [SerializeField] private AnomalyManager _anomalyManager;
     [SerializeField] private ToolTipManager _toolTipManager;
     [SerializeField] private ItemSpawnManager _itemSpawnManager;
@@ -37,6 +38,9 @@ public class GameManager : MonoBehaviour
     public AudioSource _audioSource;
     public AudioClip InventorySoundClip;
 
+    public List<string> ExperiencedAnomalies = new List<string>();
+    public List<string> CollectedKeyItemsLog = new List<string>();
+
     public float InventorySoundPitch = 1.2f;
     public float OpenSoundStartTime = 0f;
     public float OpenSoundEndTime = 0.9f;
@@ -44,6 +48,7 @@ public class GameManager : MonoBehaviour
     public float CloseSoundEndTime = 2.2f;
     public bool IsMedicineUsed = false;
     public bool IsEndingReady = false;
+
     void Awake()
     {
         if (Instance != null && Instance != this)
@@ -126,6 +131,12 @@ public class GameManager : MonoBehaviour
                 InventoryManager.Instance.LoadInventory(_loadedDataBuffer.InventoryItemNames);
 
             if (CameraManager.Instance != null) CameraManager.Instance.SetXRotation(_loadedDataBuffer.CameraXRot);
+
+            if (_loadedDataBuffer.ExperiencedAnomalies != null)
+                ExperiencedAnomalies = new List<string>(_loadedDataBuffer.ExperiencedAnomalies);
+
+            if (_loadedDataBuffer.CollectedKeyItems != null)
+                CollectedKeyItemsLog = new List<string>(_loadedDataBuffer.CollectedKeyItems);
 
             StartCoroutine(ApplyPlayerPositionAfterRegistration());
         }
@@ -309,6 +320,24 @@ public class GameManager : MonoBehaviour
         _anomalyManager = manager;
     }
 
+    public void RegisterAnomaly(string anomalyName)
+    {
+        if (!ExperiencedAnomalies.Contains(anomalyName))
+        {
+            ExperiencedAnomalies.Add(anomalyName);
+            Debug.Log($"[System] »õ·Î¿î ÀÌ»ó Çö»ó ±â·ÏµÊ: {anomalyName}");
+        }
+    }
+
+    public void RegisterKeyItem(string itemName)
+    {
+        if (!CollectedKeyItemsLog.Contains(itemName))
+        {
+            CollectedKeyItemsLog.Add(itemName);
+            Debug.Log($"[System] Áß¿ä ¾ÆÀÌÅÛ È¹µæ ±â·ÏµÊ: {itemName}");
+        }
+    }
+
     public void RegisterItemSpawnManager(ItemSpawnManager manager)
     {
         _itemSpawnManager = manager;
@@ -317,6 +346,11 @@ public class GameManager : MonoBehaviour
     public void RegisterToolTipManager(ToolTipManager manager)
     {
         _toolTipManager = manager;
+    }
+
+    public void RegisterEventManager(EventManager manager)
+    {
+        _eventManager = manager;
     }
 
     private IEnumerator ApplyPlayerPositionAfterRegistration()

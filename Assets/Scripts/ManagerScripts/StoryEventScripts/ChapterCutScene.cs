@@ -11,6 +11,11 @@ public class ChapterCutScene : MonoBehaviour
 
     public float DarkIntensity = 0.85f;
 
+    void Start()
+    {
+        DontDestroyOnLoad(gameObject);
+    }
+
     public IEnumerator PlayCutscene()
     {
         GameManager.IsPlayerStop = true;
