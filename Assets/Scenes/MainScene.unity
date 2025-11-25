@@ -4780,8 +4780,8 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 0
 --- !u!114 &531237190
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4817,7 +4817,7 @@ Light:
   m_Type: 1
   m_Shape: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 1
+  m_Intensity: 3
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -7516,6 +7516,7 @@ MonoBehaviour:
   StairBlockWall: {fileID: 1670849186}
   TutorialNote: {fileID: 188008485}
   OnDeskObject: {fileID: 1212864468}
+  DirectionalLight: {fileID: 531237189}
   TutorialNoteItem: {fileID: 11400000, guid: c53653a740f003f44a66eca6f0d6d1a0, type: 2}
   KeyItem: {fileID: 11400000, guid: 1c7bb3893c21ecc42ab3e0fc0500d8f3, type: 2}
   DiagnosisItem: {fileID: 11400000, guid: b106125fa3314dd448673ecbc6c34558, type: 2}
@@ -14207,7 +14208,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &2089798001
 Transform:
