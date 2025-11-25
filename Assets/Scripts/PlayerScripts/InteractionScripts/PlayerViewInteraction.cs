@@ -33,6 +33,7 @@ public class PlayerViewInteraction : MonoBehaviour
     public GameObject StairBlockWall;
     public GameObject TutorialNote;
     public GameObject OnDeskObject;
+    public GameObject DirectionalLight;
 
     public Item TutorialNoteItem;
     public Item KeyItem;
@@ -54,6 +55,8 @@ public class PlayerViewInteraction : MonoBehaviour
         Crosshair = CrosshairPannel.GetComponent<Image>();
         _isTutorialNoteRead = false;
         _mainLights = GameObject.FindGameObjectsWithTag("MainLight");
+
+        if (DirectionalLight != null) DirectionalLight.SetActive(false);
 
         if (_audioSource == null )
         {
@@ -556,6 +559,8 @@ public class PlayerViewInteraction : MonoBehaviour
         GameManager.IsAnomaly = false;
         GameManager.CanSprint = false;
         CrosshairPannel.SetActive(true);
+
+        DirectionalLight.SetActive(true);
 
         yield return StartCoroutine(EventManager.Instance.Fade(true, 2.0f));
 
