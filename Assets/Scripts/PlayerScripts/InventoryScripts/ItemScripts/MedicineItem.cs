@@ -5,18 +5,35 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "Medicine", menuName = "Inventory/Medicine Item")]
 public class MedicineItem : Item
 {
+    public AudioClip MedicineSound;
+
     public override void Use()
     {
         InventoryManager.Instance.Remove(this);
 
         if (PlayerSanity.Instance != null )
         {
-            PlayerSanity.Instance.RestoreSanityGradually(100f, 5.0f);
+            PlayerSanity.Instance.RestoreSanityGradually(100f, 10.0f);
         }
 
         if (GameManager.Instance != null) GameManager.Instance.IsMedicineUsed = true;
 
-        if (EventManager.Instance != null) EventManager.Instance.ShowSubtitle("...조금씩 진정되는 것 같아.", 3f);
+        if (EventManager.Instance != null) EventManager.Instance.StartCoroutine(PlayMedicineEffectDialogue());
+
         EventManager.Instance.UpdateObjective("");
+    }
+
+    private IEnumerator PlayMedicineEffectDialogue()
+    {
+        if (GameManager.Instance != null && MedicineSound != null) GameManager.Instance._audioSource.PlayOneShot(MedicineSound);
+
+        EventManager.Instance.ShowSubtitle("꿀꺽...", 2f);
+        yield return new WaitForSeconds(2f);
+
+        EventManager.Instance.ShowSubtitle("하아.. 하아..", 2f);
+        yield return new WaitForSeconds(2f);
+
+        EventManager.Instance.ShowSubtitle("...이제 좀... 괜찮아 지는 것 같네.", 3f);
+        yield return new WaitForSeconds(3f);
     }
 }

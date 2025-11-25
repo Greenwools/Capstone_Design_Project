@@ -43,6 +43,16 @@ public static class SaveSystem
             return null;
         }
     }
+
+    public static void DeleteSaveFile()
+    {
+        string path = GetSavePath();
+        if (File.Exists(path))
+        {
+            File.Delete(path);
+            Debug.Log("저장 데이터 삭제 완료");
+        }
+    }
 }
 
 [System.Serializable]
@@ -50,13 +60,17 @@ public class GameManagerData
 {
     public int LoopCount;
     public int CurrentChapter;
-    public bool HasBackpack;
     public float CurrentSanity;
-    public float CameraXRot;
 
     public List<string> InventoryItemNames;
+    public List<string> CollectedKeyItems;
+    public List<string> ExperiencedAnomalies;
+
     public float[] PlayerPosition;
     public float[] PlayerRotation;
+    public float CameraXRot;
+
+    public bool HasBackpack;
 
     public GameManagerData(GameManager manager, Transform playerTransform)
     {
@@ -66,13 +80,19 @@ public class GameManagerData
 
         if (PlayerSanity.Instance != null) CurrentSanity = PlayerSanity.Instance.GetCurrentSanity();
 
+        InventoryItemNames = new List<string>();
         if (InventoryManager.Instance != null)
         {
-            InventoryItemNames = new List<string>();
             foreach (Item item in InventoryManager.Instance.Items)
             {
                 InventoryItemNames.Add(item.name);
             }
+        }
+
+        ExperiencedAnomalies = new List<string>();
+        if (GameManager.Instance != null && GameManager.Instance.ExperiencedAnomalies != null)
+        {
+            ExperiencedAnomalies.AddRange(GameManager.Instance.ExperiencedAnomalies);
         }
 
         if (CameraManager.Instance != null) CameraXRot = CameraManager.Instance.GetXRotation();

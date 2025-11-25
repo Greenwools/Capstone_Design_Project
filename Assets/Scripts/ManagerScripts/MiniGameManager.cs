@@ -116,6 +116,12 @@ public class MiniGameManager : MonoBehaviour
 
             while (true)
             {
+                if (Time.timeScale == 0)
+                {
+                    yield return null;
+                    continue;
+                }
+
                 timer += Time.unscaledDeltaTime / SliderSpeed;
 
                 currentSliderValue = Mathf.PingPong(timer, 1f);

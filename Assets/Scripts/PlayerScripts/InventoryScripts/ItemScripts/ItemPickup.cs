@@ -13,6 +13,11 @@ public class ItemPickup : MonoBehaviour
     {
         if (InventoryManager.Instance.Add(item))
         {
+            if (GameManager.Instance != null && item.itemType == ItemType.Important)
+            {
+                GameManager.Instance.RegisterKeyItem(item.ItemName);
+            }
+
             OnItemPickUp?.Invoke(item);
             Destroy(gameObject);
         }

@@ -19,6 +19,9 @@ public class NoteUI : MonoBehaviour
     public Button NextButton;
     public Button CloseButton;
 
+    public AudioSource Audio;
+    public AudioClip PagingClip;
+
     public bool IsReading => _isReading;
     public bool HasRead = false;
 
@@ -36,6 +39,8 @@ public class NoteUI : MonoBehaviour
         if (NextButton != null) NextButton.onClick.AddListener(NextPage);
         if (CloseButton != null) CloseButton.onClick.AddListener(CloseNote);
         if (NotePannel != null) NotePannel.SetActive(false);
+        if (Audio == null) Audio = GetComponent<AudioSource>();
+        _isReading = false;
     }
 
     private void UpdateNoteDisplay()
@@ -87,6 +92,8 @@ public class NoteUI : MonoBehaviour
         {
             _currentPage += 2;
             UpdateNoteDisplay();
+
+            if (Audio != null && PagingClip != null) Audio.PlayOneShot(PagingClip);
         }
     }
 
@@ -96,6 +103,8 @@ public class NoteUI : MonoBehaviour
         {
             _currentPage -= 2;
             UpdateNoteDisplay();
+
+            if (Audio != null && PagingClip != null) Audio.PlayOneShot(PagingClip);
         }
     }
 }
