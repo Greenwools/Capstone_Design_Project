@@ -6,18 +6,20 @@ using UnityEngine.Rendering.Universal;
 
 public class HyperventilationAnomaly : MonoBehaviour, IAnomaly, IResetable
 {
-    private bool _hasTriggered = false;
     private Coroutine _breathingCoroutine;
+    private bool _hasTriggered = false;
+
+    public AudioSource BreathingAudio;
+    public AudioSource HeartBeatAudio;
+    public AudioClip[] BreathingSounds;
 
     public float EffectDuration = 60f;
     public float HeadBobMultiplier = 2.5f;
     public float MaxLensDistortion = -0.5f;
     public float MaxChromaticAberration = 1.0f;
     public float MaxVignetteIntensity = 0.6f;
-
-    public AudioSource BreathingAudio;
-    public AudioSource HeartBeatAudio;
-    public AudioClip[] BreathingSounds;
+    public float VertigoIntensity = 5.0f;
+    public float VertigoSpeed = 2.0f;
 
     void Awake()
     {
@@ -41,9 +43,16 @@ public class HyperventilationAnomaly : MonoBehaviour, IAnomaly, IResetable
         if (BreathingAudio != null) BreathingAudio.Stop();
         if (HeartBeatAudio != null) HeartBeatAudio.Stop();
 
+        if (CameraManager.Instance != null) CameraManager.Instance.AddedZRot = 0f;
+
         if (PlayerSanity.Instance != null)
         {
             PlayerSanity.Instance.ResetAllEffects();
+        }
+
+        if (EventManager.Instance != null)
+        {
+            EventManager.Instance.ShowSubtitle("", 0f);
         }
 
         _hasTriggered = false;
@@ -61,6 +70,9 @@ public class HyperventilationAnomaly : MonoBehaviour, IAnomaly, IResetable
 
             if (HeartBeatAudio != null) HeartBeatAudio.Play();
             _breathingCoroutine = StartCoroutine(PlayBreathingSounds());
+
+            StartCoroutine(VertigoSequence());
+            StartCoroutine(PlayPanicDialogue());
         }
     }
 
@@ -74,5 +86,37 @@ public class HyperventilationAnomaly : MonoBehaviour, IAnomaly, IResetable
             BreathingAudio.PlayOneShot(clip);
             yield return new WaitForSeconds(clip.length);
         }
+    }
+
+    private IEnumerator VertigoSequence()
+    {
+        if (CameraManager.Instance == null) yield break;
+
+        float timer = 0f;
+        while (timer < EffectDuration)
+        {
+            float zRotation = Mathf.Sin(Time.time * VertigoSpeed) * VertigoIntensity;
+
+            CameraManager.Instance.AddedZRot = zRotation;
+
+            timer += Time.deltaTime;
+            yield return null;
+        }
+
+        CameraManager.Instance.AddedZRot = 0f;
+    }
+
+    private IEnumerator PlayPanicDialogue()
+    {
+        EventManager.Instance.ShowSubtitle("어..? 갑자기 머리가 왜 이러지..?", 3f);
+
+        yield return new WaitForSeconds(3.0f);
+        EventManager.Instance.ShowSubtitle("바닥이... 울렁거려... 중심을 못 잡겠어...", 4f);
+
+        yield return new WaitForSeconds(4.0f);
+        EventManager.Instance.ShowSubtitle("허억... 윽... 숨이... 안 쉬어져...", 3f);
+
+        yield return new WaitForSeconds(4.0f);
+        EventManager.Instance.ShowSubtitle("어서 이동해야 해..", 3f);
     }
 }

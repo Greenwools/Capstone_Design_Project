@@ -44,7 +44,7 @@ public class EndingCredit : MonoBehaviour
         float currentSpeed = (Input.GetMouseButton(0) || Input.GetKey(KeyCode.Space)) ? FastForwardSpeed : ScrollSpeed;
         CreditsContent.anchoredPosition += Vector2.up * currentSpeed * Time.deltaTime;
 
-        if (CreditsContent.anchoredPosition.y > CreditsContent.rect.height + Screen.height)
+        if (CreditsContent.anchoredPosition.y > CreditsContent.rect.height - 1100f)
             StartCoroutine(EndSequence());
     }
 

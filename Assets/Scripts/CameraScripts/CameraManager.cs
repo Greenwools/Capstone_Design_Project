@@ -6,11 +6,12 @@ public class CameraManager : MonoBehaviour
 {
     public static CameraManager Instance;
 
-    public float MouseSensity = 300.0f;
-    public Transform PlayerTransform;
-
     private float _xRot = 0f;
     private float _delay = 0.2f;     // 게임 시작 시 카메라 시야가 이상해서 초반 입력 무시용 딜레이
+
+    public Transform PlayerTransform;
+    public float MouseSensity = 300.0f;
+    public float AddedZRot = 0f;
 
     void Awake()
     {
@@ -51,7 +52,7 @@ public class CameraManager : MonoBehaviour
         _xRot -= mouseY;
         _xRot = Mathf.Clamp(_xRot, -90f, 90f);
 
-        transform.localRotation = Quaternion.Euler(_xRot, 0f, 0f);
+        transform.localRotation = Quaternion.Euler(_xRot, 0f, AddedZRot);
         PlayerTransform.Rotate(Vector3.up * mouseX);
     }
 

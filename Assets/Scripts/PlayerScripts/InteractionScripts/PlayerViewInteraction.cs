@@ -99,6 +99,20 @@ public class PlayerViewInteraction : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (CrosshairPannel != null)
+        {
+            bool isMenuOpen = GameManager.Instance.IsUIOpen();
+
+            bool isFading = (EventManager.Instance != null && EventManager.Instance.FadePanel != null && EventManager.Instance.FadePanel.activeSelf);
+
+            bool shouldShow = !isMenuOpen && !isFading;
+
+            if (!_isEndingPhase)
+            {
+                if (CrosshairPannel.activeSelf != shouldShow) CrosshairPannel.SetActive(shouldShow);
+            }
+        }
+
         if (GameManager.IsPlayerStop || GameManager.Instance.IsUIOpen()) return;
 
         if (GameManager.LoopCount == 2 && !_isTutorialNoteRead)
@@ -112,7 +126,7 @@ public class PlayerViewInteraction : MonoBehaviour
 
         if (GameManager.LoopCount >= 2 && !GameManager.Instance.IsUIOpen() && Input.GetMouseButtonDown(1))
         {
-            if (_flashLight != null)
+            if (_flashLight != null && GameManager.CanFlash)
             {
                 _flashLight.enabled = !_flashLight.enabled;
                 _audioSource.pitch = FlashSoundPitch;
