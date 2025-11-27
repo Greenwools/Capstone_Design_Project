@@ -17,6 +17,7 @@ public class GameManager : MonoBehaviour
     public static int LoopCount = 0;
     public static int CurrentChapter = 1;
     public static bool IsPlayerStop = false;                // 플레이어 행동 제어
+    public static bool CanFlash = true;
     public static bool CanSprint = true;
     public static bool IsAnomaly = false;
     public static bool HasBackpack = false;
@@ -326,6 +327,9 @@ public class GameManager : MonoBehaviour
         {
             ExperiencedAnomalies.Add(anomalyName);
             Debug.Log($"[System] 새로운 이상 현상 기록됨: {anomalyName}");
+
+            if (AchievementManager.Instance != null)
+                AchievementManager.Instance.UnlockAchievement(anomalyName);
         }
     }
 
