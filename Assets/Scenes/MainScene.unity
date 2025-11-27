@@ -5499,8 +5499,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   DialogueLines:
-  - "( \uC18C\uB3C5\uC57D \uB0C4\uC0C8... \uCC28\uAC00\uC6B4 \uACF5\uAE30... ) (
-    \uC544... \uAE30\uC5B5\uB09C\uB2E4. \uB0B4\uAC00 \uCC98\uC74C\uC73C\uB85C \uB3C4\uB9DD\uCCE4\uB358
+  - "( \uC18C\uB3C5\uC57D \uB0C4\uC0C8... \uCC28\uAC00\uC6B4 \uACF5\uAE30... )"
+  - "( \uC544.. \uAE30\uC5B5\uB09C\uB2E4. \uB0B4\uAC00 \uCC98\uC74C\uC73C\uB85C \uB3C4\uB9DD\uCCE4\uB358
     \uB0A0. )"
   - "[\uC758\uC0AC]\r\n\"\uC694\uC998 \uB9CE\uC774 \uD798\uB4E4\uB2E4\uACE0 \uD558\uC168\uC8E0.
     \n\uC815\uD655\uD788 \uC5B8\uC81C\uBD80\uD130\uC600\uC2B5\uB2C8\uAE4C?\""
@@ -5550,7 +5550,8 @@ MonoBehaviour:
     \uC778\uC815\uD558\uB294 \uAC8C... \uC8FD\uAE30\uBCF4\uB2E4 \uC2EB\uC5C8\uC73C\uB2C8\uAE4C.
     )"
   DialogueDurations:
-  - 3
+  - 2
+  - 2
   - 3
   - 4
   - 5
@@ -6535,7 +6536,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Padding:
-    m_Left: 100
+    m_Left: 150
     m_Right: 100
     m_Top: 300
     m_Bottom: 200
@@ -12817,7 +12818,7 @@ MonoBehaviour:
   CrosshairPannel: {fileID: 1602698857}
   StairBlockWall: {fileID: 1670849186}
   TutorialNote: {fileID: 188008485}
-  SecondNote: {fileID: 0}
+  SecondNote: {fileID: 705709924}
   OnDeskObject: {fileID: 1212864468}
   DirectionalLight: {fileID: 531237189}
   TutorialNoteItem: {fileID: 11400000, guid: c53653a740f003f44a66eca6f0d6d1a0, type: 2}
@@ -13578,6 +13579,7 @@ MonoBehaviour:
   - {fileID: 272581298}
   - {fileID: 1619043963}
   - {fileID: 251838253}
+  MajorAnomalyChance: 0.5
 --- !u!43 &1001145818
 Mesh:
   m_ObjectHideFlags: 0
@@ -16506,13 +16508,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1300741974}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.13302222, y: 0.6330222, z: -0.111618884, w: 0.7544066}
+  m_LocalRotation: {x: 0.16580237, y: 0.62755096, z: -0.13912469, w: 0.74788624}
   m_LocalPosition: {x: -5.3, y: 0.05, z: -3.8}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 86642300}
-  m_LocalEulerAnglesHint: {x: 20, y: 80, z: 0}
+  m_LocalEulerAnglesHint: {x: 25, y: 80, z: 0}
 --- !u!43 &1307842441
 Mesh:
   m_ObjectHideFlags: 0
@@ -20940,14 +20942,14 @@ MonoBehaviour:
     ItemName: "\uC885\uC774 \uBD09\uD22C"
     SpawnGroups:
     - GroupName: Spawn1
-      SpawnChance: 1
+      SpawnChance: 0.6
       SpawnPoints:
       - {fileID: 1052270364}
       - {fileID: 1947782176}
       - {fileID: 248765898}
       - {fileID: 115479105}
     - GroupName: Spawn2
-      SpawnChance: 1
+      SpawnChance: 0.5
       SpawnPoints:
       - {fileID: 1196940005}
       - {fileID: 362392382}
@@ -25317,8 +25319,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 557600635}
   m_HandleRect: {fileID: 557600634}
   m_Direction: 0
-  m_Value: 1
-  m_Size: 0.99999994
+  m_Value: 0
+  m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:

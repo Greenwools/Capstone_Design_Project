@@ -11,6 +11,8 @@ public class AnomalyManager : MonoBehaviour
     public List<GameObject> SmallAnomalyList;
     public List<GameObject> MainAnomalyList;
 
+    [Range(0f, 1f)] public float MajorAnomalyChance = 0.6f;
+
     void Awake ()
     {
         if (Instance != null && Instance != this)
@@ -29,23 +31,41 @@ public class AnomalyManager : MonoBehaviour
     {
         if (!GameManager.IsAnomaly) return;
 
-        List<GameObject> currentPool = new List<GameObject>();
-        currentPool.AddRange(SmallAnomalyList);
+        GameObject selectedAnomaly = null;
+        List<GameObject> targetList = new List<GameObject>();
+
+        bool canSpawnMajor = false;
 
         bool isItemSpawned = false;
         if (ItemSpawnManager.Instance != null) isItemSpawned = ItemSpawnManager.Instance.IsEssentialItemSpawned();
 
-        if (GameManager.CurrentChapter >= 2 && !isItemSpawned) currentPool.AddRange(MainAnomalyList);
+        if (GameManager.CurrentChapter >= 2 && !isItemSpawned && MainAnomalyList.Count > 0) canSpawnMajor = true;
 
-        if (_lastTriggeredAnomaly != null && currentPool.Contains(_lastTriggeredAnomaly))
+        if (canSpawnMajor && Random.value < MajorAnomalyChance)
         {
-            currentPool.Remove(_lastTriggeredAnomaly);
+            targetList.AddRange(MainAnomalyList);
         }
 
-        if (currentPool.Count > 0)
+        else
         {
-            int index = Random.Range(0, currentPool.Count);
-            GameObject selectedAnomaly = currentPool[index];
+            targetList.AddRange(SmallAnomalyList);
+        }
+
+        if (_lastTriggeredAnomaly != null && targetList.Contains(_lastTriggeredAnomaly))
+        {
+            targetList.Remove(_lastTriggeredAnomaly);
+        }
+
+        if (targetList.Count == 0)
+        {
+            if (canSpawnMajor) targetList.AddRange(MainAnomalyList);
+            else targetList.AddRange(SmallAnomalyList);
+        }
+
+        if (targetList.Count > 0)
+        {
+            int index = Random.Range(0, targetList.Count);
+            selectedAnomaly = targetList[index];
 
             IAnomaly anomalyScript = selectedAnomaly.GetComponent<IAnomaly>();
 

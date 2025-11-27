@@ -300,6 +300,9 @@ public class PlayerViewInteraction : MonoBehaviour
 
         if (isStoryEvent)
         {
+            if (BGMManager.Instance != null)
+                BGMManager.Instance.PlayBGM(BGMManager.Instance.StoryMusic, 2.0f, 0.6f);
+
             if (GameManager.CurrentChapter == 1 && Chapter1Cut != null) yield return StartCoroutine(Chapter1Cut.PlayCutscene());
             else if (GameManager.CurrentChapter == 2 && Chapter2Cut != null) yield return StartCoroutine(Chapter2Cut.PlayCutscene());
 
@@ -372,6 +375,9 @@ public class PlayerViewInteraction : MonoBehaviour
             }
 
             EventManager.Instance.ShowSubtitle("...일단은 계속 나아가 보자.", 2f);
+
+            if (BGMManager.Instance != null)
+                BGMManager.Instance.PlayBGM(BGMManager.Instance.MainAmbient, 3.0f, 0.3f);
         }
 
         else if (GameManager.LoopCount == 1)
@@ -547,6 +553,8 @@ public class PlayerViewInteraction : MonoBehaviour
         GameManager.IsPlayerStop = true;
         EventManager.Instance.UpdateObjective("");
         CrosshairPannel.SetActive(false);
+
+        if (BGMManager.Instance != null) BGMManager.Instance.StopBGM(2.0f);
 
         yield return StartCoroutine(EventManager.Instance.Fade(false, 2.0f));
 

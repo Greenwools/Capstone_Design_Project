@@ -34,6 +34,9 @@ public class EndingCredit : MonoBehaviour
                 t.color = Color.white;
             }
         }
+
+        if (BGMManager.Instance != null)
+            BGMManager.Instance.PlayBGM(BGMManager.Instance.EndingMusic, 1.0f, 0.4f);
     }
 
     // Update is called once per frame
@@ -62,6 +65,8 @@ public class EndingCredit : MonoBehaviour
                 FinalMessageText.color = Color.white;
             }
         }
+
+        if (BGMManager.Instance != null) BGMManager.Instance.StopBGM(4.0f);
 
         yield return new WaitForSeconds(5f);
 

@@ -72,6 +72,13 @@ public class GameManager : MonoBehaviour
         else InitializeNewGame();
 
         _dataLoaded = false;
+
+        if (BGMManager.Instance != null)
+        {
+            // 스토리 컷신 중이거나 엔딩이면 재생 안 함 (안전장치)
+            if (!IsEndingReady)
+                BGMManager.Instance.PlayBGM(BGMManager.Instance.MainAmbient, 2.0f, 0.3f);
+        }
     }
 
     // Update is called once per frame
