@@ -59,6 +59,7 @@ public class TinnitusAnomaly : MonoBehaviour, IAnomaly, IResetable
         {
             _hasTriggered = true;
             StartCoroutine(TinnitusSequence());
+            StartCoroutine(PlayTinnitusDialogue());
         }
     }
 
@@ -76,6 +77,8 @@ public class TinnitusAnomaly : MonoBehaviour, IAnomaly, IResetable
         if (_lensDistortion != null) _lensDistortion.intensity.value = _originalDistortion;
         if (TargetMixer != null) TargetMixer.SetFloat(ExposedParamName, 0f);
         if (_audioSource != null) _audioSource.Stop();
+
+        if (EventManager.Instance != null) EventManager.Instance.ShowSubtitle("", 0f);
 
         _hasTriggered = false;
         gameObject.SetActive(false);
@@ -127,7 +130,7 @@ public class TinnitusAnomaly : MonoBehaviour, IAnomaly, IResetable
 
         while (timer < fadeOutTime)
         {
-            float t = timer / fadeInTime;
+            float t = timer / fadeOutTime;
 
             _audioSource.volume = Mathf.Lerp(MaxVolume, 0f, t);
 
@@ -148,5 +151,17 @@ public class TinnitusAnomaly : MonoBehaviour, IAnomaly, IResetable
         _audioSource.Stop();
         if (_vignette != null) _vignette.intensity.value = _originalVignette;
         if (TargetMixer != null) TargetMixer.SetFloat(ExposedParamName, _originalMixerVolume);
+    }
+
+    private IEnumerator PlayTinnitusDialogue()
+    {
+        yield return new WaitForSeconds(1.0f);
+        EventManager.Instance.ShowSubtitle("...갑자기 귀가 왜 이러지?", 3f);
+
+        yield return new WaitForSeconds(3.0f);
+        EventManager.Instance.ShowSubtitle("이명 소리가... 너무 커...", 3f);
+
+        yield return new WaitForSeconds(3.0f);
+        EventManager.Instance.ShowSubtitle("아무 소리도... 안 들려...", 3f);
     }
 }
